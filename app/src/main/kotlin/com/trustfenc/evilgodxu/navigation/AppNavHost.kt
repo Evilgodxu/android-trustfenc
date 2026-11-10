@@ -45,10 +45,11 @@ fun AppNavHost(
     // 根页面（Home）的系统返回：双击退出。
     // NavDisplay 内置返回处理仅在场景有上级条目（previousEntries 非空）时启用，
     // 根页面不会回调 onBack，因此退出逻辑必须在此单独拦截，否则按一次返回即退出。
+    // 退出用 finishAndRemoveTask：连带把任务从最近任务列表移除，不在后台留下墓碑。
     BackHandler(enabled = backStack.size == 1) {
         val now = SystemClock.uptimeMillis()
         if (now - lastRootBackAt <= EXIT_CONFIRM_WINDOW_MS) {
-            activity?.finish()
+            activity?.finishAndRemoveTask()
         } else {
             lastRootBackAt = now
             Toast.makeText(context, exitHint, Toast.LENGTH_SHORT).show()
