@@ -123,7 +123,7 @@ private val DarkColorScheme = darkColorScheme(
 )
 
 @Composable
-fun MyApplicationTheme(
+fun TrustFencTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit,
 ) {

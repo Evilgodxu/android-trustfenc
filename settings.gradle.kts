@@ -38,5 +38,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "trustfenc"
+rootProject.name = "TrustFenc"
 include(":app")

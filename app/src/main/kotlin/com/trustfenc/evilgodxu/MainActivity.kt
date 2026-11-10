@@ -27,7 +27,7 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import com.trustfenc.evilgodxu.localization.LocalizationManager
 import com.trustfenc.evilgodxu.localization.ProvideLocalizedContext
 import com.trustfenc.evilgodxu.navigation.AppNavHost
-import com.trustfenc.evilgodxu.theme.MyApplicationTheme
+import com.trustfenc.evilgodxu.theme.TrustFencTheme
 import com.trustfenc.evilgodxu.ui.component.dialog.UpdateDialog
 import com.trustfenc.evilgodxu.update.AppUpdateViewModel
 import com.trustfenc.evilgodxu.update.LocalAppUpdateViewModel
@@ -86,7 +86,7 @@ class MainActivity : ComponentActivity() {
 
     @Composable
     private fun MainContent() {
-        MyApplicationTheme {
+        TrustFencTheme {
             val updateUiState by updateViewModel.uiState.collectAsStateWithLifecycle()
             // 回到前台：若仍有待安装的更新包，重新弹出安装确认对话框
             LifecycleResumeEffect(Unit) {

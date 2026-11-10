@@ -3,9 +3,9 @@
 
     <!-- Home -->
     <string name="home_title">Home</string>
-    <string name="home_greeting">Welcome to trustfenc</string>
+    <string name="home_greeting">Welcome to TrustFenc</string>
     <string name="home_welcome_title">Welcome</string>
-    <string name="home_welcome_message">An out-of-the-box Android app trustfenc with a ready-to-use project skeleton and common capabilities, ready for your own features.</string>
+    <string name="home_welcome_message">TrustFenc is your security companion, guarding the boundaries of your digital life.</string>
     <string name="home_about_title">About</string>
     <string name="home_about_message">Built on a single-activity architecture with Jetpack Compose, featuring MVVM, manual DI, DataStore persistence, light/dark themes, multi-language support, and a modular code organization.</string>
 
