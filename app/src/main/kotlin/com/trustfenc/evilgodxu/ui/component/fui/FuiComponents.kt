@@ -1,4 +1,4 @@
-package com.trustfenc.evilgodxu.screens.home.component.console.fui
+package com.trustfenc.evilgodxu.ui.component.fui
 
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -16,11 +16,9 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.CutCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
@@ -30,59 +28,69 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-// FUI 背景层：深色为纯黑，浅色用模糊渐变托底，再叠一层低对比坐标点阵
+// FUI 背景层：远景同心弧 + 中景分层线框 + 底层坐标点阵，用线条层级而非模糊渐变制造纵深
 @Composable
 fun FuiBackdrop(modifier: Modifier = Modifier) {
     val palette = LocalFuiPalette.current
     Box(modifier = modifier.background(palette.background)) {
-        if (palette.isLight) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .blur(90.dp),
-            ) {
-                GlassOrb(
-                    alignment = Alignment.TopEnd,
-                    offsetX = 80.dp,
-                    offsetY = (-110).dp,
-                    size = 320.dp,
-                    color = Color(0xFFB6C2D6).copy(alpha = 0.75f),
-                )
-                GlassOrb(
-                    alignment = Alignment.BottomStart,
-                    offsetX = (-100).dp,
-                    offsetY = 70.dp,
-                    size = 300.dp,
-                    color = Color(0xFFD3CADF).copy(alpha = 0.70f),
-                )
-                GlassOrb(
-                    alignment = Alignment.CenterEnd,
-                    offsetX = 60.dp,
-                    offsetY = 0.dp,
-                    size = 220.dp,
-                    color = Color(0xFFC6D8D1).copy(alpha = 0.55f),
+        Canvas(modifier = Modifier.fillMaxSize()) {
+            val ink = palette.ink
+            val baseAlpha = if (palette.isLight) 0.10f else 0.07f
+            val stroke = 1.dp.toPx()
+
+            // 远景：自右上角向外扩散的同心弧
+            val arcCenter = Offset(size.width * 1.04f, size.height * 0.02f)
+            listOf(0.30f, 0.46f, 0.62f, 0.78f).forEachIndexed { index, ratio ->
+                drawCircle(
+                    color = ink.copy(alpha = baseAlpha * (1f - index * 0.18f)),
+                    radius = size.width * ratio,
+                    center = arcCenter,
+                    style = Stroke(width = stroke),
                 )
             }
-        }
-        Canvas(modifier = Modifier.fillMaxSize()) {
+
+            // 中景：右下双层线框，半出画形成前后景深
+            val frameTopLeft = Offset(size.width * 0.58f, size.height * 0.72f)
+            val frameSize = Size(size.width * 0.55f, size.height * 0.36f)
+            drawRect(
+                color = ink.copy(alpha = baseAlpha * 0.8f),
+                topLeft = frameTopLeft,
+                size = frameSize,
+                style = Stroke(width = stroke),
+            )
+            val inset = 16.dp.toPx()
+            drawRect(
+                color = ink.copy(alpha = baseAlpha * 0.45f),
+                topLeft = Offset(frameTopLeft.x + inset, frameTopLeft.y + inset),
+                size = Size(frameSize.width - inset * 2, frameSize.height - inset * 2),
+                style = Stroke(width = stroke),
+            )
+
+            // 近景：左下十字准线
+            val cross = Offset(size.width * 0.08f, size.height * 0.86f)
+            val arm = 20.dp.toPx()
+            val crossColor = ink.copy(alpha = baseAlpha * 0.9f)
+            drawLine(crossColor, Offset(cross.x - arm, cross.y), Offset(cross.x + arm, cross.y), stroke)
+            drawLine(crossColor, Offset(cross.x, cross.y - arm), Offset(cross.x, cross.y + arm), stroke)
+
+            // 底层：坐标点阵
             val step = 26.dp.toPx()
             val radius = 0.7.dp.toPx()
-            val dotColor = palette.ink.copy(alpha = if (palette.isLight) 0.10f else 0.08f)
+            val dotColor = ink.copy(alpha = if (palette.isLight) 0.10f else 0.08f)
             var y = step
             while (y < size.height) {
                 var x = step
@@ -96,27 +104,7 @@ fun FuiBackdrop(modifier: Modifier = Modifier) {
     }
 }
 
-@Composable
-private fun BoxScope.GlassOrb(
-    alignment: Alignment,
-    offsetX: Dp,
-    offsetY: Dp,
-    size: Dp,
-    color: Color,
-) {
-    Box(
-        modifier = Modifier
-            .align(alignment)
-            .offset(x = offsetX, y = offsetY)
-            .size(size)
-            .background(
-                brush = Brush.radialGradient(listOf(color, Color.Transparent)),
-                shape = CircleShape,
-            ),
-    )
-}
-
-// 切角细线面板：四角带短刻线，模拟 HUD 框体
+// 切角细线面板：浅色以投影浮起，深色保持纯黑平面，四角带短刻线
 @Composable
 fun FuiPanel(
     modifier: Modifier = Modifier,
@@ -127,6 +115,13 @@ fun FuiPanel(
     val shape = CutCornerShape(6.dp)
     Box(
         modifier = modifier
+            .shadow(
+                elevation = if (palette.isLight) 12.dp else 0.dp,
+                shape = shape,
+                clip = false,
+                ambientColor = palette.ink.copy(alpha = 0.06f),
+                spotColor = palette.ink.copy(alpha = 0.12f),
+            )
             .background(color = if (solid) palette.solidPanel else palette.panel, shape = shape)
             .border(width = 1.dp, color = palette.line, shape = shape)
             .cornerTicks(palette.ink.copy(alpha = 0.5f)),
@@ -223,6 +218,33 @@ fun FuiTag(
     )
 }
 
+// 方形图标按钮：顶栏的返回与设置共用，保持切角描边样式
+@Composable
+fun FuiIconButton(
+    icon: ImageVector,
+    contentDescription: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val palette = LocalFuiPalette.current
+    val shape = CutCornerShape(2.dp)
+    Box(
+        modifier = modifier
+            .size(34.dp)
+            .border(1.dp, palette.line, shape)
+            .clip(shape)
+            .clickable(role = Role.Button, onClick = onClick),
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = contentDescription,
+            modifier = Modifier.size(18.dp),
+            tint = palette.ink,
+        )
+    }
+}
+
 // 主操作按钮：修篱时为反白实心，拆除时为细线描边，过渡态禁用并显示进度
 @Composable
 fun FuiActionButton(
@@ -274,6 +296,48 @@ fun FuiActionButton(
             fontSize = 9.sp,
             letterSpacing = 2.sp,
             color = (if (enabled) contentColor else palette.inkMuted).copy(alpha = 0.6f),
+        )
+    }
+}
+
+// 弹窗底部的小号动作按钮，与主操作按钮同一套反白/描边语言
+@Composable
+fun FuiSmallButton(
+    label: String,
+    tag: String,
+    filled: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val palette = LocalFuiPalette.current
+    val shape = CutCornerShape(6.dp)
+    val contentColor = if (filled) palette.onInverse else palette.ink
+    Row(
+        modifier = modifier
+            .height(44.dp)
+            .clip(shape)
+            .background(color = if (filled) palette.inverse else Color.Transparent, shape = shape)
+            .border(width = 1.dp, color = if (filled) palette.inverse else palette.ink, shape = shape)
+            .clickable(role = Role.Button, onClick = onClick)
+            .padding(horizontal = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = label,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.SemiBold,
+            letterSpacing = 1.sp,
+            color = contentColor,
+            maxLines = 1,
+        )
+        Spacer(Modifier.weight(1f))
+        Text(
+            text = tag,
+            fontFamily = FontFamily.Monospace,
+            fontSize = 8.sp,
+            letterSpacing = 1.sp,
+            color = contentColor.copy(alpha = 0.6f),
+            maxLines = 1,
         )
     }
 }

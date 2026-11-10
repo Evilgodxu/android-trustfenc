@@ -19,12 +19,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.trustfenc.evilgodxu.R
 import com.trustfenc.evilgodxu.data.fence.FenceStatus
-import com.trustfenc.evilgodxu.screens.home.component.console.fui.FuiActionButton
-import com.trustfenc.evilgodxu.screens.home.component.console.fui.FuiPanel
-import com.trustfenc.evilgodxu.screens.home.component.console.fui.FuiReticle
-import com.trustfenc.evilgodxu.screens.home.component.console.fui.FuiSectionHeader
-import com.trustfenc.evilgodxu.screens.home.component.console.fui.FuiTag
-import com.trustfenc.evilgodxu.screens.home.component.console.fui.LocalFuiPalette
+import com.trustfenc.evilgodxu.ui.component.fui.FuiActionButton
+import com.trustfenc.evilgodxu.ui.component.fui.FuiPanel
+import com.trustfenc.evilgodxu.ui.component.fui.FuiReticle
+import com.trustfenc.evilgodxu.ui.component.fui.FuiSectionHeader
+import com.trustfenc.evilgodxu.ui.component.fui.FuiTag
+import com.trustfenc.evilgodxu.ui.component.fui.LocalFuiPalette
 import com.trustfenc.evilgodxu.ui.icons.AppIcons
 
 // 控制台主卡：状态标签、准星徽章、状态码与唯一主操作，整体保持 FUI 的黑白细线语言

@@ -23,10 +23,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.trustfenc.evilgodxu.R
 import com.trustfenc.evilgodxu.data.fence.InterceptedApp
-import com.trustfenc.evilgodxu.screens.home.component.console.fui.FuiPanel
-import com.trustfenc.evilgodxu.screens.home.component.console.fui.FuiSectionHeader
-import com.trustfenc.evilgodxu.screens.home.component.console.fui.FuiTag
-import com.trustfenc.evilgodxu.screens.home.component.console.fui.LocalFuiPalette
+import com.trustfenc.evilgodxu.ui.component.fui.FuiPanel
+import com.trustfenc.evilgodxu.ui.component.fui.FuiSectionHeader
+import com.trustfenc.evilgodxu.ui.component.fui.FuiTag
+import com.trustfenc.evilgodxu.ui.component.fui.LocalFuiPalette
 
 // 最近拦截：按时间倒序的终端式记录，空列表时以「NO RECORDS」提示
 @Composable

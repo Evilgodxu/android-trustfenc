@@ -1,4 +1,4 @@
-package com.trustfenc.evilgodxu.screens.home.component.console.fui
+package com.trustfenc.evilgodxu.ui.component.fui
 
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -36,11 +36,11 @@ private val DarkFuiPalette = FuiPalette(
 
 private val LightFuiPalette = FuiPalette(
     isLight = true,
-    background = Color(0xFFF1F2F5),
+    background = Color(0xFFE7E9ED),
     ink = Color(0xFF0B0C0E),
     inkMuted = Color(0xFF0B0C0E).copy(alpha = 0.60f),
     line = Color(0xFF0B0C0E).copy(alpha = 0.22f),
-    panel = Color.White.copy(alpha = 0.55f),
+    panel = Color.White.copy(alpha = 0.72f),
     solidPanel = Color(0xFFF7F8FA),
     inverse = Color(0xFF0B0C0E),
     onInverse = Color(0xFFF7F8FA),
@@ -50,7 +50,7 @@ val LocalFuiPalette = staticCompositionLocalOf<FuiPalette> {
     error("FuiPalette is not provided")
 }
 
-// 控制台根作用域：深色纯黑，浅色改为模糊渐变底，内容仍保持黑色细线与等宽微标签
+// 控制台与设置页共用的黑白 FUI 视觉：深色纯黑，浅色以分层线框与浮起面板体现纵深
 @Composable
 fun FuiConsoleTheme(content: @Composable () -> Unit) {
     val isLight = MaterialTheme.colorScheme.background.luminance() >= 0.5f

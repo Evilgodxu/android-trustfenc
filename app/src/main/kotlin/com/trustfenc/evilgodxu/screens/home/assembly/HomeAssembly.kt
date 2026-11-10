@@ -15,16 +15,20 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.trustfenc.evilgodxu.R
 import com.trustfenc.evilgodxu.screens.home.HomeUiState
-import com.trustfenc.evilgodxu.screens.home.component.console.ConsoleTopBar
 import com.trustfenc.evilgodxu.screens.home.component.console.FenceGuideCard
 import com.trustfenc.evilgodxu.screens.home.component.console.FenceOverviewCard
 import com.trustfenc.evilgodxu.screens.home.component.console.FenceStatusCard
 import com.trustfenc.evilgodxu.screens.home.component.console.RecentInterceptsCard
-import com.trustfenc.evilgodxu.screens.home.component.console.fui.FuiBackdrop
-import com.trustfenc.evilgodxu.screens.home.component.console.fui.LocalFuiPalette
 import com.trustfenc.evilgodxu.ui.component.ContentPane
+import com.trustfenc.evilgodxu.ui.component.fui.FuiBackdrop
+import com.trustfenc.evilgodxu.ui.component.fui.FuiIconButton
+import com.trustfenc.evilgodxu.ui.component.fui.FuiTopBar
+import com.trustfenc.evilgodxu.ui.component.fui.LocalFuiPalette
+import com.trustfenc.evilgodxu.ui.icons.AppIcons
 import com.trustfenc.evilgodxu.windowsize.WindowSizeClass
 import com.trustfenc.evilgodxu.windowsize.contentMaxWidth
 
@@ -41,7 +45,18 @@ fun HomeAssembly(
     Scaffold(
         modifier = modifier,
         containerColor = palette.background,
-        topBar = { ConsoleTopBar(onOpenSettings = onOpenSettings) },
+        topBar = {
+            FuiTopBar(
+                title = stringResource(R.string.fui_brand),
+                actions = {
+                    FuiIconButton(
+                        icon = AppIcons.Settings,
+                        contentDescription = stringResource(R.string.settings_title),
+                        onClick = onOpenSettings,
+                    )
+                },
+            )
+        },
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
     ) { innerPadding ->
         Box(modifier = Modifier.fillMaxSize()) {

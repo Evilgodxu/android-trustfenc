@@ -23,9 +23,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.trustfenc.evilgodxu.R
-import com.trustfenc.evilgodxu.screens.home.component.console.fui.FuiPanel
-import com.trustfenc.evilgodxu.screens.home.component.console.fui.FuiSectionHeader
-import com.trustfenc.evilgodxu.screens.home.component.console.fui.LocalFuiPalette
+import com.trustfenc.evilgodxu.ui.component.fui.FuiPanel
+import com.trustfenc.evilgodxu.ui.component.fui.FuiSectionHeader
+import com.trustfenc.evilgodxu.ui.component.fui.LocalFuiPalette
 
 // 工作方式：扫描 → 建立基线 → 监听安装 → 清除越界应用的四步流程
 @Composable

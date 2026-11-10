@@ -16,6 +16,7 @@ import com.trustfenc.evilgodxu.screens.settings.assembly.SettingsAssembly
 import com.trustfenc.evilgodxu.screens.settings.component.dialog.LanguageSelectionDialog
 import com.trustfenc.evilgodxu.screens.settings.component.dialog.ThemeSelectionDialog
 import com.trustfenc.evilgodxu.theme.LocalThemeTransitionController
+import com.trustfenc.evilgodxu.ui.component.fui.FuiConsoleTheme
 import com.trustfenc.evilgodxu.update.LocalAppUpdateViewModel
 import com.trustfenc.evilgodxu.update.UpdateMessage
 import com.trustfenc.evilgodxu.windowsize.rememberWindowSizeClass
@@ -37,40 +38,43 @@ fun SettingsScreen(
 
     CheckUpdateMessagesEffect(updateViewModel.messages)
 
-    SettingsAssembly(
-        windowSizeClass = rememberWindowSizeClass(),
-        uiState = appUiState,
-        onBack = onBack,
-        onShowThemeDialog = settingsViewModel::showThemeDialog,
-        onShowLanguageDialog = settingsViewModel::showLanguageDialog,
-        onCheckForUpdate = updateViewModel::checkNow,
-        modifier = modifier,
-    )
-
-    // 弹层与形态无关，统一挂在骨架层，新增形态时不会重复实现
-    if (settingsUiState.showThemeDialog) {
-        ThemeSelectionDialog(
-            currentTheme = appUiState.themeMode,
-            onDismiss = settingsViewModel::dismissThemeDialog,
-            // 先从点击位置播放圆形揭示，再落库主题：揭示动画需要旧主题画面作为底图
-            onThemeSelected = { mode ->
-                onThemeReveal(settingsUiState.pendingThemeClickPosition)
-                activityViewModel.setThemeMode(mode)
-                settingsViewModel.dismissThemeDialog()
-            },
+    // 设置页沿用控制台的 FUI 黑白主题，页面与弹窗共享同一配色作用域
+    FuiConsoleTheme {
+        SettingsAssembly(
+            windowSizeClass = rememberWindowSizeClass(),
+            uiState = appUiState,
+            onBack = onBack,
+            onShowThemeDialog = settingsViewModel::showThemeDialog,
+            onShowLanguageDialog = settingsViewModel::showLanguageDialog,
+            onCheckForUpdate = updateViewModel::checkNow,
+            modifier = modifier,
         )
-    }
 
-    if (settingsUiState.showLanguageDialog) {
-        LanguageSelectionDialog(
-            currentLanguage = appUiState.language,
-            onDismiss = settingsViewModel::dismissLanguageDialog,
-            // 先关闭弹窗再切换语言：语言变化会就地重建弹窗内文案，视觉上会看到一次闪跳
-            onLanguageSelected = { language ->
-                settingsViewModel.dismissLanguageDialog()
-                activityViewModel.setLanguage(language)
-            },
-        )
+        // 弹层与形态无关，统一挂在骨架层，新增形态时不会重复实现
+        if (settingsUiState.showThemeDialog) {
+            ThemeSelectionDialog(
+                currentTheme = appUiState.themeMode,
+                onDismiss = settingsViewModel::dismissThemeDialog,
+                // 先从点击位置播放圆形揭示，再落库主题：揭示动画需要旧主题画面作为底图
+                onThemeSelected = { mode ->
+                    onThemeReveal(settingsUiState.pendingThemeClickPosition)
+                    activityViewModel.setThemeMode(mode)
+                    settingsViewModel.dismissThemeDialog()
+                },
+            )
+        }
+
+        if (settingsUiState.showLanguageDialog) {
+            LanguageSelectionDialog(
+                currentLanguage = appUiState.language,
+                onDismiss = settingsViewModel::dismissLanguageDialog,
+                // 先关闭弹窗再切换语言：语言变化会就地重建弹窗内文案，视觉上会看到一次闪跳
+                onLanguageSelected = { language ->
+                    settingsViewModel.dismissLanguageDialog()
+                    activityViewModel.setLanguage(language)
+                },
+            )
+        }
     }
 }
 

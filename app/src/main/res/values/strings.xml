@@ -71,6 +71,14 @@
     <string name="fui_action_dismantle_tag">DISMANTLE</string>
     <string name="fui_action_cancel_tag">ESC</string>
     <string name="fui_dialog_warn">SYS.WARN</string>
+    <string name="fui_title_settings">SETTINGS</string>
+    <string name="fui_tag_appearance">APPEARANCE</string>
+    <string name="fui_tag_language">LANGUAGE</string>
+    <string name="fui_tag_about">ABOUT</string>
+    <string name="fui_label_version">VERSION</string>
+    <string name="fui_label_log">LOG</string>
+    <string name="fui_tag_check">CHECK</string>
+    <string name="fui_label_select">SELECT</string>
 
     <!-- 设置页 -->
     <string name="settings_title">设置</string>
@@ -78,9 +86,9 @@
     <string name="settings_language_title">语言</string>
     <string name="settings_section_appearance">外观</string>
     <string name="settings_section_language">语言</string>
+    <string name="settings_section_about">关于</string>
     <string name="settings_theme_dialog_title">选择主题</string>
     <string name="settings_language_dialog_title">选择语言</string>
-    <string name="settings_version">版本 %1$s</string>
     <string name="settings_log">[日志]</string>
     <string name="settings_log_empty_today">今日暂无日志</string>
     <string name="settings_share_log_title">分享日志</string>

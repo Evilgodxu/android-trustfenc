@@ -71,6 +71,14 @@
     <string name="fui_action_dismantle_tag">DISMANTLE</string>
     <string name="fui_action_cancel_tag">ESC</string>
     <string name="fui_dialog_warn">SYS.WARN</string>
+    <string name="fui_title_settings">SETTINGS</string>
+    <string name="fui_tag_appearance">APPEARANCE</string>
+    <string name="fui_tag_language">LANGUAGE</string>
+    <string name="fui_tag_about">ABOUT</string>
+    <string name="fui_label_version">VERSION</string>
+    <string name="fui_label_log">LOG</string>
+    <string name="fui_tag_check">CHECK</string>
+    <string name="fui_label_select">SELECT</string>
 
     <!-- Settings -->
     <string name="settings_title">Settings</string>
@@ -78,9 +86,9 @@
     <string name="settings_language_title">Language</string>
     <string name="settings_section_appearance">Appearance</string>
     <string name="settings_section_language">Language</string>
+    <string name="settings_section_about">About</string>
     <string name="settings_theme_dialog_title">Select Theme</string>
     <string name="settings_language_dialog_title">Language</string>
-    <string name="settings_version">Version %1$s</string>
     <string name="settings_log">[Log]</string>
     <string name="settings_log_empty_today">No log available today</string>
     <string name="settings_share_log_title">Share log</string>

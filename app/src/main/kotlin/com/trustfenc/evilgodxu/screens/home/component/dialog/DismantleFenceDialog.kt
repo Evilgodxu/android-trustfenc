@@ -1,8 +1,6 @@
 package com.trustfenc.evilgodxu.screens.home.component.dialog
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -14,16 +12,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.shape.CutCornerShape
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -31,8 +25,9 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.trustfenc.evilgodxu.R
-import com.trustfenc.evilgodxu.screens.home.component.console.fui.FuiPanel
-import com.trustfenc.evilgodxu.screens.home.component.console.fui.LocalFuiPalette
+import com.trustfenc.evilgodxu.ui.component.fui.FuiPanel
+import com.trustfenc.evilgodxu.ui.component.fui.FuiSmallButton
+import com.trustfenc.evilgodxu.ui.component.fui.LocalFuiPalette
 
 // 拆除确认：清空基线不可撤销，用 FUI 警示面板承接破坏性操作
 @Composable
@@ -100,7 +95,7 @@ fun DismantleFenceDialog(
                     HorizontalDivider(color = palette.line)
                     Spacer(Modifier.height(16.dp))
                     Row {
-                        DialogAction(
+                        FuiSmallButton(
                             label = stringResource(R.string.console_action_cancel),
                             tag = stringResource(R.string.fui_action_cancel_tag),
                             filled = false,
@@ -108,7 +103,7 @@ fun DismantleFenceDialog(
                             modifier = Modifier.weight(1f),
                         )
                         Spacer(Modifier.width(10.dp))
-                        DialogAction(
+                        FuiSmallButton(
                             label = stringResource(R.string.console_action_dismantle),
                             tag = stringResource(R.string.fui_action_dismantle_tag),
                             filled = true,
@@ -122,43 +117,3 @@ fun DismantleFenceDialog(
     }
 }
 
-@Composable
-private fun DialogAction(
-    label: String,
-    tag: String,
-    filled: Boolean,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    val palette = LocalFuiPalette.current
-    val shape = CutCornerShape(6.dp)
-    val contentColor = if (filled) palette.onInverse else palette.ink
-    Row(
-        modifier = modifier
-            .height(44.dp)
-            .clip(shape)
-            .background(color = if (filled) palette.inverse else Color.Transparent, shape = shape)
-            .border(width = 1.dp, color = if (filled) palette.inverse else palette.ink, shape = shape)
-            .clickable(role = Role.Button, onClick = onClick)
-            .padding(horizontal = 12.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(
-            text = label,
-            fontSize = 12.sp,
-            fontWeight = FontWeight.SemiBold,
-            letterSpacing = 1.sp,
-            color = contentColor,
-            maxLines = 1,
-        )
-        Spacer(Modifier.weight(1f))
-        Text(
-            text = tag,
-            fontFamily = FontFamily.Monospace,
-            fontSize = 8.sp,
-            letterSpacing = 1.sp,
-            color = contentColor.copy(alpha = 0.6f),
-            maxLines = 1,
-        )
-    }
-}

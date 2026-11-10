@@ -11,7 +11,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.trustfenc.evilgodxu.App
 import com.trustfenc.evilgodxu.screens.home.assembly.HomeAssembly
-import com.trustfenc.evilgodxu.screens.home.component.console.fui.FuiConsoleTheme
+import com.trustfenc.evilgodxu.ui.component.fui.FuiConsoleTheme
 import com.trustfenc.evilgodxu.screens.home.component.dialog.DismantleFenceDialog
 import com.trustfenc.evilgodxu.update.LocalAppUpdateViewModel
 import com.trustfenc.evilgodxu.windowsize.rememberWindowSizeClass
