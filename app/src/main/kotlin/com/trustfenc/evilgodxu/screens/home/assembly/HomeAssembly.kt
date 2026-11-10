@@ -84,7 +84,11 @@ private fun CompactConsole(
     uiState: HomeUiState,
     onPrimaryAction: () -> Unit,
 ) {
-    FenceStatusCard(status = uiState.status, onPrimaryAction = onPrimaryAction)
+    FenceStatusCard(
+        status = uiState.status,
+        shizuku = uiState.shizuku,
+        onPrimaryAction = onPrimaryAction,
+    )
     FenceOverviewCard(
         status = uiState.status,
         baselineCount = uiState.baselineCount,
@@ -105,7 +109,11 @@ private fun WideConsole(
         verticalAlignment = Alignment.Top,
     ) {
         Column(modifier = Modifier.weight(1f)) {
-            FenceStatusCard(status = uiState.status, onPrimaryAction = onPrimaryAction)
+            FenceStatusCard(
+                status = uiState.status,
+                shizuku = uiState.shizuku,
+                onPrimaryAction = onPrimaryAction,
+            )
             FenceOverviewCard(
                 status = uiState.status,
                 baselineCount = uiState.baselineCount,

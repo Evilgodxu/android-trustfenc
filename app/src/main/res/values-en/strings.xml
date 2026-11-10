@@ -80,6 +80,35 @@
     <string name="fui_tag_check">CHECK</string>
     <string name="fui_label_select">SELECT</string>
 
+    <!-- Runtime conditions and failures -->
+    <string name="fui_shizuku_label">SHIZUKU</string>
+    <string name="fui_shizuku_missing">MISSING</string>
+    <string name="fui_shizuku_offline">OFFLINE</string>
+    <string name="fui_shizuku_unauthorized">UNAUTHORIZED</string>
+    <string name="fui_shizuku_denied">DENIED</string>
+    <string name="fui_shizuku_ready">READY</string>
+    <string name="fui_action_ok_tag">OK</string>
+    <string name="fui_action_shizuku_tag">SHIZUKU</string>
+    <string name="fence_notice_warn">SYS.ALERT</string>
+    <string name="fence_notice_open_shizuku">Open Shizuku</string>
+    <string name="fence_notice_dismiss">Got it</string>
+    <string name="fence_failure_shizuku_missing_title">Shizuku not found</string>
+    <string name="fence_failure_shizuku_missing_message">TrustFenc gets ADB access through Shizuku. Install and start Shizuku, then try raising the fence again.</string>
+    <string name="fence_failure_shizuku_offline_title">Shizuku is not running</string>
+    <string name="fence_failure_shizuku_offline_message">Open Shizuku and start its service (via wireless debugging or root), then retry.</string>
+    <string name="fence_failure_permission_title">ADB permission denied</string>
+    <string name="fence_failure_permission_message">Allow TrustFenc in Shizuku, then tap Raise fence again.</string>
+    <string name="fence_failure_scan_title">App scan failed</string>
+    <string name="fence_failure_scan_message">Could not read the installed app list. Make sure Shizuku is ready and retry.</string>
+    <string name="fence_failure_service_title">Guard service failed to start</string>
+    <string name="fence_failure_service_message">The system blocked the guard service. Check notification permission and background restrictions, then retry.</string>
+
+    <!-- Guard notification -->
+    <string name="fence_notification_channel">Fence guard</string>
+    <string name="fence_notification_channel_desc">Shows fence status and block count</string>
+    <string name="fence_notification_title">TrustFenc is guarding</string>
+    <string name="fence_notification_text">Baseline %1$d · Blocked %2$d</string>
+
     <!-- Settings -->
     <string name="settings_title">Settings</string>
     <string name="settings_theme_title">Theme</string>

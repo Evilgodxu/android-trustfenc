@@ -11,6 +11,17 @@
     <!-- 调起系统安装器所必需（Android 8.0+）；安装授权由系统安装器自行引导，应用不做申请 -->
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
 
+    <!-- 篱笆守护：常驻前台服务监听安装事件，开机后恢复守护 -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <!-- 通过 Shizuku 获取 ADB 权限 -->
+    <uses-permission android:name="moe.shizuku.manager.permission.API_V23" />
+
+    <!-- 包可见性：识别 Shizuku 管理器是否安装 -->
+    <queries>
+        <package android:name="moe.shizuku.privileged.api" />
+    </queries>
+
     <application
         android:name=".App"
         android:icon="@mipmap/ic_launcher"
@@ -45,6 +56,35 @@
             android:name=".update.UpdateDownloadService"
             android:exported="false"
             android:foregroundServiceType="dataSync" />
+
+        <!-- 篱笆守护：监听安装事件并通过 Shizuku 卸载越界应用 -->
+        <service
+            android:name=".service.FenceGuardService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Watches package installs and enforces the baseline allowlist" />
+        </service>
+
+        <!-- 开机与应用更新后恢复守护 -->
+        <receiver
+            android:name=".service.FenceBootReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+        </receiver>
+
+        <!-- Shizuku 授权通道 -->
+        <provider
+            android:name="rikka.shizuku.ShizukuProvider"
+            android:authorities="${applicationId}.shizuku"
+            android:enabled="true"
+            android:exported="true"
+            android:multiprocess="false"
+            android:permission="android.permission.INTERACT_ACROSS_USERS_FULL" />
     </application>
 
 </manifest>

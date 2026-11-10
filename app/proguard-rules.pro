@@ -26,3 +26,7 @@
     private ** descriptor;
 }
 
+# Shizuku UserService 由 Shizuku 在独立进程按类名实例化，AIDL 与实现类必须保留
+-keep class com.trustfenc.evilgodxu.service.** { *; }
+-keep class * extends rikka.shizuku.** { *; }
+

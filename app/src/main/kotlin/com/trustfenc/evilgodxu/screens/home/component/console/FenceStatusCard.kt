@@ -1,12 +1,16 @@
 package com.trustfenc.evilgodxu.screens.home.component.console
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -19,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.trustfenc.evilgodxu.R
 import com.trustfenc.evilgodxu.data.fence.FenceStatus
+import com.trustfenc.evilgodxu.data.shizuku.ShizukuState
 import com.trustfenc.evilgodxu.ui.component.fui.FuiActionButton
 import com.trustfenc.evilgodxu.ui.component.fui.FuiPanel
 import com.trustfenc.evilgodxu.ui.component.fui.FuiReticle
@@ -31,6 +36,7 @@ import com.trustfenc.evilgodxu.ui.icons.AppIcons
 @Composable
 fun FenceStatusCard(
     status: FenceStatus,
+    shizuku: ShizukuState,
     onPrimaryAction: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -104,8 +110,45 @@ fun FenceStatusCard(
                     busy = busy,
                     onClick = onPrimaryAction,
                 )
+                Spacer(Modifier.height(18.dp))
+                HorizontalDivider(color = palette.line)
+                Spacer(Modifier.height(12.dp))
+                ShizukuStatusRow(shizuku = shizuku)
             }
         }
+    }
+}
+
+// 运行条件：Shizuku 的就绪状态直接决定修筑与卸载能否执行
+@Composable
+private fun ShizukuStatusRow(shizuku: ShizukuState) {
+    val palette = LocalFuiPalette.current
+    val ready = shizuku == ShizukuState.Ready
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = stringResource(R.string.fui_shizuku_label),
+            fontFamily = FontFamily.Monospace,
+            fontSize = 9.sp,
+            letterSpacing = 1.5.sp,
+            color = palette.inkMuted,
+        )
+        Spacer(Modifier.weight(1f))
+        Box(
+            modifier = Modifier
+                .size(6.dp)
+                .background(if (ready) palette.ink else palette.inkMuted),
+        )
+        Spacer(Modifier.width(8.dp))
+        Text(
+            text = stringResource(shizuku.codeRes()),
+            fontFamily = FontFamily.Monospace,
+            fontSize = 9.sp,
+            letterSpacing = 1.5.sp,
+            color = if (ready) palette.ink else palette.inkMuted,
+        )
     }
 }
 
@@ -156,4 +199,12 @@ private fun FenceStatus.actionTagRes(): Int = when (this) {
     FenceStatus.Building -> R.string.fui_action_build_tag
     is FenceStatus.Guarding -> R.string.fui_action_dismantle_tag
     FenceStatus.Dismantling -> R.string.fui_action_dismantle_tag
+}
+
+private fun ShizukuState.codeRes(): Int = when (this) {
+    ShizukuState.NotInstalled -> R.string.fui_shizuku_missing
+    ShizukuState.NotRunning -> R.string.fui_shizuku_offline
+    ShizukuState.PermissionRequired -> R.string.fui_shizuku_unauthorized
+    ShizukuState.PermissionDenied -> R.string.fui_shizuku_denied
+    ShizukuState.Ready -> R.string.fui_shizuku_ready
 }

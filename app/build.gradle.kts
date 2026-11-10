@@ -113,6 +113,8 @@ android {
     }
     buildFeatures {
         compose = true
+        // Shizuku UserService 通信用 AIDL 声明跨进程接口
+        aidl = true
     }
     testOptions {
         unitTests {
@@ -145,7 +147,7 @@ androidComponents {
     }
     onVariants(selector().all()) { variant ->
         variant.outputs.forEach { output ->
-            output.outputFileName.set("trustfenc-$apkVersionName-arm64.apk")
+            output.outputFileName.set("TrustFenc-$apkVersionName-arm64.apk")
         }
     }
 }
@@ -174,6 +176,10 @@ dependencies {
 
     // Kotlin Serialization
     implementation(libs.kotlinx.serialization.json)
+
+    // Shizuku：应用内置 ADB 权限通道，用于扫描应用与卸载越界应用
+    implementation(libs.shizuku.api)
+    implementation(libs.shizuku.provider)
 
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)

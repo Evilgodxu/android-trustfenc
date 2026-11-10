@@ -1,7 +1,7 @@
 package com.trustfenc.evilgodxu.screens.home
 
+import com.trustfenc.evilgodxu.data.fence.FenceFailure
 import com.trustfenc.evilgodxu.data.fence.FenceStatus
-import com.trustfenc.evilgodxu.data.repository.InMemoryFenceRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
@@ -14,6 +14,7 @@ import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -36,7 +37,7 @@ class HomeViewModelTest {
 
     @Test
     fun `初始状态未修筑且不弹确认框`() = runTest(mainDispatcher) {
-        val viewModel = HomeViewModel(InMemoryFenceRepository())
+        val viewModel = HomeViewModel(FakeFenceRepository())
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.uiState.collect { } }
 
         assertEquals(FenceStatus.Idle, viewModel.uiState.value.status)
@@ -45,21 +46,20 @@ class HomeViewModelTest {
 
     @Test
     fun `修筑篱笆经仓库回流进入守护状态`() = runTest(mainDispatcher) {
-        val viewModel = HomeViewModel(InMemoryFenceRepository(buildingDurationMillis = 1))
+        val viewModel = HomeViewModel(FakeFenceRepository())
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.uiState.collect { } }
 
         viewModel.onPrimaryAction()
         advanceUntilIdle()
 
         assertTrue(viewModel.uiState.value.status is FenceStatus.Guarding)
+        assertEquals(3, viewModel.uiState.value.baselineCount)
         assertFalse(viewModel.uiState.value.showDismantleConfirm)
     }
 
     @Test
     fun `守护中再次点击只请求确认不立即拆除`() = runTest(mainDispatcher) {
-        val viewModel = HomeViewModel(
-            InMemoryFenceRepository(buildingDurationMillis = 1, dismantlingDurationMillis = 1),
-        )
+        val viewModel = HomeViewModel(FakeFenceRepository())
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.uiState.collect { } }
         viewModel.onPrimaryAction()
         advanceUntilIdle()
@@ -73,9 +73,7 @@ class HomeViewModelTest {
 
     @Test
     fun `确认拆除经仓库回流回到未修筑`() = runTest(mainDispatcher) {
-        val viewModel = HomeViewModel(
-            InMemoryFenceRepository(buildingDurationMillis = 1, dismantlingDurationMillis = 1),
-        )
+        val viewModel = HomeViewModel(FakeFenceRepository())
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.uiState.collect { } }
         viewModel.onPrimaryAction()
         advanceUntilIdle()
@@ -89,7 +87,7 @@ class HomeViewModelTest {
 
     @Test
     fun `取消拆除保持守护状态`() = runTest(mainDispatcher) {
-        val viewModel = HomeViewModel(InMemoryFenceRepository(buildingDurationMillis = 1))
+        val viewModel = HomeViewModel(FakeFenceRepository())
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.uiState.collect { } }
         viewModel.onPrimaryAction()
         advanceUntilIdle()
@@ -100,5 +98,23 @@ class HomeViewModelTest {
 
         assertFalse(viewModel.uiState.value.showDismantleConfirm)
         assertTrue(viewModel.uiState.value.status is FenceStatus.Guarding)
+    }
+
+    @Test
+    fun `失败事件呈现为提示并可关闭`() = runTest(mainDispatcher) {
+        val repository = FakeFenceRepository()
+        val viewModel = HomeViewModel(repository)
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.uiState.collect { } }
+        advanceUntilIdle()
+
+        repository.emitFailure(FenceFailure.PermissionDenied)
+        advanceUntilIdle()
+
+        assertEquals(FenceFailure.PermissionDenied, viewModel.uiState.value.notice)
+
+        viewModel.dismissNotice()
+        advanceUntilIdle()
+
+        assertNull(viewModel.uiState.value.notice)
     }
 }

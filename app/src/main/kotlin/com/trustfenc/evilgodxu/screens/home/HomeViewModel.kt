@@ -2,6 +2,7 @@ package com.trustfenc.evilgodxu.screens.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.trustfenc.evilgodxu.data.fence.FenceFailure
 import com.trustfenc.evilgodxu.data.fence.FenceStatus
 import com.trustfenc.evilgodxu.data.repository.FenceRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -11,21 +12,34 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-// 控制台页面级 ViewModel：把仓库快照与页面弹窗状态合成唯一 UI 状态，事件向上收敛为三个动作
+// 控制台页面级 ViewModel：把仓库快照、确认弹窗与失败提示合成唯一 UI 状态
 class HomeViewModel(
     private val fenceRepository: FenceRepository,
 ) : ViewModel() {
 
     private val showDismantleConfirm = MutableStateFlow(false)
+    private val notice = MutableStateFlow<FenceFailure?>(null)
+
+    init {
+        viewModelScope.launch {
+            fenceRepository.failures.collect { failure -> notice.value = failure }
+        }
+    }
 
     val uiState: StateFlow<HomeUiState> =
-        combine(fenceRepository.snapshot, showDismantleConfirm) { snapshot, confirm ->
+        combine(
+            fenceRepository.snapshot,
+            showDismantleConfirm,
+            notice,
+        ) { snapshot, confirm, currentNotice ->
             HomeUiState(
                 status = snapshot.status,
+                shizuku = snapshot.shizuku,
                 baselineCount = snapshot.baselineCount,
                 interceptedCount = snapshot.interceptedCount,
                 recentIntercepts = snapshot.recentIntercepts,
                 showDismantleConfirm = confirm,
+                notice = currentNotice,
             )
         }.stateIn(
             scope = viewModelScope,
@@ -49,5 +63,9 @@ class HomeViewModel(
     fun confirmDismantle() {
         showDismantleConfirm.value = false
         viewModelScope.launch { fenceRepository.dismantleFence() }
+    }
+
+    fun dismissNotice() {
+        notice.value = null
     }
 }

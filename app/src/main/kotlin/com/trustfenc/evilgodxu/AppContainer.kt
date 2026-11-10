@@ -6,12 +6,14 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStoreFile
+import com.trustfenc.evilgodxu.data.fence.InstalledAppScanner
+import com.trustfenc.evilgodxu.data.repository.DataStoreFenceRepository
 import com.trustfenc.evilgodxu.data.repository.DataStoreSettingsRepository
 import com.trustfenc.evilgodxu.data.repository.DataStoreUpdateCheckRepository
 import com.trustfenc.evilgodxu.data.repository.FenceRepository
-import com.trustfenc.evilgodxu.data.repository.InMemoryFenceRepository
 import com.trustfenc.evilgodxu.data.repository.SettingsRepository
 import com.trustfenc.evilgodxu.data.repository.UpdateCheckRepository
+import com.trustfenc.evilgodxu.data.shizuku.ShizukuShell
 import com.trustfenc.evilgodxu.localization.LocalizationManager
 import com.trustfenc.evilgodxu.update.ApkInstaller
 import com.trustfenc.evilgodxu.update.UpdateDownloadCoordinator
@@ -30,9 +32,19 @@ class AppContainer(context: Context) {
         DataStoreUpdateCheckRepository(preferencesDataStore)
     }
 
-    // 篱笆数据源：控制台骨架阶段为内存实现，接入应用扫描与安装监听后替换
+    // 篱笆数据源：DataStore 持有基线与统计，Shizuku 提供扫描与卸载能力
     val fenceRepository: FenceRepository by lazy {
-        InMemoryFenceRepository()
+        DataStoreFenceRepository(
+            context = appContext,
+            dataStore = preferencesDataStore,
+            scanner = InstalledAppScanner(appContext, shizukuShell),
+            shell = shizukuShell,
+        )
+    }
+
+    // ADB 权限通道：构造即注册 Shizuku binder 监听
+    val shizukuShell: ShizukuShell by lazy {
+        ShizukuShell(appContext)
     }
 
     val localizationManager: LocalizationManager by lazy {
