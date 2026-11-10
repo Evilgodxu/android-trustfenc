@@ -1,6 +1,7 @@
 package com.trustfenc.evilgodxu.ui.component.dialog
 
 import android.Manifest
+import android.os.Build
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -64,8 +65,13 @@ private fun AvailableDialog(info: UpdateInfo, onDismiss: () -> Unit, onStartDown
         confirmButton = {
             TextButton(
                 onClick = {
-                    // 下载通知需要通知权限；被拒时下载仍可继续，仅通知不可见
-                    permissionManager.request(Manifest.permission.POST_NOTIFICATIONS) { onStartDownload() }
+                    // 下载通知需要通知权限；API 33 以下安装即授予，无需申请。
+                    // 被拒时下载仍可继续，仅通知不可见
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                        permissionManager.request(Manifest.permission.POST_NOTIFICATIONS) { onStartDownload() }
+                    } else {
+                        onStartDownload()
+                    }
                 },
             ) {
                 Text(stringResource(R.string.update_action_update))

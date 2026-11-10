@@ -4,6 +4,7 @@ import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ServiceInfo
+import android.os.Build
 import android.os.IBinder
 import androidx.core.app.ServiceCompat
 import com.trustfenc.evilgodxu.App
@@ -51,7 +52,12 @@ class UpdateDownloadService : Service() {
             this,
             UpdateNotifications.NOTIFICATION_ID,
             UpdateNotifications.progress(notificationContext, 0),
-            ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC,
+            // dataSync 类型自 API 29 起才有定义；更低版本按普通前台服务运行
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
+            } else {
+                0
+            },
         )
         try {
             val targetFile = container.updateDownloadCoordinator.downloadFile(info.version)

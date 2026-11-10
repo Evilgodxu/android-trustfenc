@@ -10,6 +10,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.ServiceInfo
+import android.os.Build
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import androidx.core.app.ServiceCompat
@@ -53,7 +54,12 @@ class FenceGuardService : Service() {
             this,
             NOTIFICATION_ID,
             buildNotification(baselineCount = 0, interceptedCount = 0),
-            ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE,
+            // specialUse 自 API 34 起才有定义；更低版本按普通前台服务运行
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE
+            } else {
+                0
+            },
         )
         // 同步注册监听，避免服务启动窗口内漏掉安装事件
         registerPackageReceiver()

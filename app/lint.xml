@@ -7,9 +7,4 @@
     <issue id="Deprecated" severity="error" />
     <issue id="UnsafeOptInUsageError" severity="error" />
     <issue id="UnsafeOptInUsageWarning" severity="error" />
-    <!--
-      本模板刻意只发布 arm64-v8a（APK 命名亦为 -arm64），
-      ChromeOS 的 x86_64 兼容交给系统二进制翻译，故忽略该检查。
-    -->
-    <issue id="ChromeOsAbiSupport" severity="ignore" />
 </lint>

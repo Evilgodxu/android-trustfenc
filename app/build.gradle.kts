@@ -20,16 +20,12 @@ android {
 
     defaultConfig {
         applicationId = "com.trustfenc.evilgodxu"
-        minSdk = 34
+        minSdk = 26
         targetSdk = 37
         versionCode = 1
         versionName = "1.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-
-        ndk {
-            abiFilters += listOf("arm64-v8a")
-        }
     }
 
     signingConfigs {
@@ -129,7 +125,7 @@ android {
     }
 }
 
-// 构建产物统一命名为 trustfenc-<versionName>-arm64.apk
+// 构建产物统一命名为 TrustFenc-<versionName>.apk
 val apkVersionName = android.defaultConfig.versionName ?: "0.0.0"
 
 kotlin {
@@ -147,7 +143,7 @@ androidComponents {
     }
     onVariants(selector().all()) { variant ->
         variant.outputs.forEach { output ->
-            output.outputFileName.set("TrustFenc-$apkVersionName-arm64.apk")
+            output.outputFileName.set("TrustFenc-$apkVersionName.apk")
         }
     }
 }

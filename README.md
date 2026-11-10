@@ -1,8 +1,8 @@
 <div align="center">
 
-# trustfenc
+# TrustFenc · 白篱
 
-**A modern, out-of-the-box Android app trustfenc built with Jetpack Compose, Material 3, MVVM and Navigation3.**
+**An allowlist fence for Android apps — lock in the apps you trust, and anything installed later is removed automatically.**
 
 **English** | [简体中文](README.zh-CN.md)
 
@@ -12,129 +12,62 @@
 ![AGP](https://img.shields.io/badge/AGP-9.5.1-blue)
 ![Gradle](https://img.shields.io/badge/Gradle-9.9.0-blue)
 ![Compose BOM](https://img.shields.io/badge/Compose%20BOM-2026.09.00-blue)
-![minSdk](https://img.shields.io/badge/minSdk-34-orange)
+![Shizuku](https://img.shields.io/badge/Shizuku-13.1.5-lightgrey)
+![minSdk](https://img.shields.io/badge/minSdk-26-orange)
 ![targetSdk](https://img.shields.io/badge/targetSdk-37-orange)
 
 </div>
 
-**trustfenc** is a production-ready starting point for new Android apps. The project skeleton and everyday plumbing are already wired up, so you can focus on business features instead of boilerplate.
+TrustFenc (白篱, "white fence") locks the current set of installed third-party apps into a baseline allowlist. While the fence is up, a foreground guard service watches for package installs and uninstalls anything that is not in the baseline, using the ADB shell channel provided by Shizuku.
+
+> Removing an app is irreversible. Raise the fence only when the current app set is the one you want to keep.
+
+## How it works
+
+1. **Scan** — non-system apps are read through both `PackageManager` and Shizuku's `pm list packages -3`; the union becomes the baseline. A failed or empty shell scan aborts the build instead of saving a partial list.
+2. **Lock** — baseline, guarding flag, start timestamp and counters are written to DataStore in a single atomic edit.
+3. **Watch** — `FenceGuardService` runs as a `specialUse` foreground service, registers `PACKAGE_ADDED` synchronously on start, and re-checks the installed list every 5 seconds as a fallback for ROMs that delay broadcasts.
+4. **Remove** — an app outside the baseline is uninstalled with `pm uninstall`, retried once with `--user 0`, then recorded (label, package, time) in the console.
+
+Normal app updates (`EXTRA_REPLACING`), system apps and updated system apps are ignored. The guard is restored after reboot, after TrustFenc itself is updated, when the process is recreated, and when the task is swiped away.
 
 ## Features
 
-- **Single-Activity architecture** with Jetpack Compose + Material 3, edge-to-edge rendering, and per-orientation system-bar visibility
-- **MVVM with unidirectional data flow (UDF)** — app-wide state (theme / language / version) is aggregated in an Activity-scoped `MainViewModel` and consumed across the tree via a `CompositionLocal`; each screen adds its own immutable `UiState` exposed as a `StateFlow`. Events flow up, state flows down
-- **Atomic UI decomposition + responsive layout** — the window size class is computed once in the screen entry and passed down as a parameter; form differences are expressed as layout flags (a content max-width on wide windows) instead of a second UI tree, so every form shares one state and one set of components
-- **Navigation3** with typed routes and an explicit back stack (double-back-to-exit on the root)
-- **Manual DI** — the `Application` owns a single `AppContainer`; the Activity and ViewModels pull dependencies from it
-- **JVM unit tests** — version comparison, persisted-value parsing and both ViewModels, using in-memory fakes instead of a mocking framework
-- **DataStore Preferences** persistence as the single source of truth behind a repository
-- **Theme modes** — System / Light / Dark, with a circular reveal transition animation when switching
-- **In-app language switching** — 简体中文 / English / Follow System, hot-swapped at runtime without recreating the Activity (per-language resource bundles disabled so switching always works)
-- **Crash log manager** — uncaught and caught exceptions written to app-specific external storage, chaining to the system default handler; today's log can be shared from the Settings page
-- **In-app updates** — checks the latest GitHub release once per day when Home is entered, or on demand from Settings; shows the release notes in a height-limited, scrollable dialog with Later / Update; downloads the APK in a foreground service (15s connect/read timeouts, progress notification, keeps downloading when the dialog is hidden), verifies the SHA-256 digest published by GitHub (aborting when it is missing or mismatched) before handing the APK to the system installer
-- **Optimized build setup** — R8 + resource shrinking for release, signed release build, `arm64-v8a`-only ABI filter, deterministic APK naming
+- **Baseline allowlist** — a complete scan is mandatory; shell enumeration errors fail the build rather than leaving gaps that later look like intruders
+- **Foreground guard** — ongoing notification shows baseline size and block count; the service stops itself if the guarding state disappears
+- **Automatic removal** — out-of-baseline installs are uninstalled through Shizuku and counted; broadcasts and the watchdog are serialized so one package is not uninstalled concurrently
+- **Durable state** — baseline, guarding flag/since, block count and the last 20 records live in DataStore; the guard comes back on boot, app update, process death and task removal
+- **Black-and-white console** — FUI-style console with guard status, `SHIZUKU` and `WATCH` heartbeat rows, a three-stat overview (baseline / blocked / uptime), recent blocks and a four-step guide; wide windows lay the same cards out in two columns
+- **Fence-aware onboarding** — before raising, the app asks for notification permission and battery-optimization exemption so the guard can survive in the background
+- **Settings** — theme (System / Light / Dark with a circular reveal), in-app language (简体中文 / English / System, hot-swapped without recreating the Activity), version check, share today's crash log, GitHub link
+- **In-app updates** — checks the latest GitHub release once per day on Home entry, or on demand from Settings; downloads in a foreground service with progress notification, verifies the published SHA-256 digest, then hands the APK to the system installer
+- **Crash logging** — uncaught and caught exceptions written to app-specific external storage and chained to the system default handler
+- **Optimized release build** — AGP 9.5 `optimization { enable = true }`, signed release, universal APK without an ABI filter, deterministic APK naming
 
 ## Screens
 
 | Screen | Contents |
 | --- | --- |
-| Home | Welcome and project overview cards, entry to Settings |
-| Settings | Appearance (theme), Language, and About (version, share today's crash log, check for updates, GitHub link) |
+| Home (console) | Guard status card with the single primary action (raise / take down), Shizuku and WATCH runtime rows, overview stats, recent blocked apps, how-it-works steps, entry to Settings |
+| Settings | Appearance (theme), Language, About (version + update check, today's crash log, GitHub) |
 
-## Tech Stack
+## Requirements
 
-| Layer | Technology |
-| --- | --- |
-| Language | Kotlin 2.4.21 |
-| UI | Jetpack Compose (BOM 2026.09.00) + Material 3 |
-| Navigation | AndroidX Navigation3 1.2.1 (+ lifecycle-viewmodel-navigation3 2.11.0) |
-| DI | Manual DI (app-level `AppContainer`) |
-| Persistence | DataStore Preferences 1.3.0 |
-| Serialization | kotlinx.serialization 1.12.0 |
-| Lifecycle | androidx.lifecycle 2.11.0, activity-compose 1.13.0 |
-| Testing | JUnit 4.13.2, kotlinx-coroutines-test 1.11.0 |
-| Build | AGP 9.5.1, Gradle 9.9.0, refreshVersions 1.0.1 (local branch) |
-
-## Project Structure
-
-```
-.
-├── app/
-│   ├── src/main/
-│   │   ├── kotlin/com/trustfenc/evilgodxu/
-│   │   │   ├── data/                    # Data layer (single source of truth)
-│   │   │   │   ├── repository/          #   Repository contracts + DataStore impls
-│   │   │   │   └── settings/            #   Settings keys, enums & state
-│   │   │   ├── log/                     # CrashLogManager (crash & exception logging)
-│   │   │   ├── navigation/              # Navigation3 typed routes + NavHost
-│   │   │   ├── screens/                 # Feature modules
-│   │   │   │   ├── home/                #   Home (Screen + UiState + ViewModel)
-│   │   │   │   │   ├── assembly/        #     Screen assembler (Scaffold + content pane)
-│   │   │   │   │   └── component/       #     Home-only components (welcome/ about/)
-│   │   │   │   └── settings/            #   Settings (Screen + UiState + ViewModel)
-│   │   │   │       ├── assembly/        #     Screen assembler (Scaffold + content pane)
-│   │   │   │       └── component/       #     Settings-only components (appearance/ language/ info/ dialog/)
-│   │   │   ├── theme/                   # Material 3 color scheme & typography
-│   │   │   ├── localization/            # In-app localization (LocalizationManager)
-│   │   │   ├── permission/              # Permission state manager (runtime + special access)
-│   │   │   ├── windowsize/              # Window size classes
-│   │   │   ├── ui/                      # Cross-screen shared UI
-│   │   │   │   ├── component/           #   Shared components (SectionCard/AppTopBar/ContentPane)
-│   │   │   │   │   └── dialog/          #     UpdateDialog
-│   │   │   │   └── icons/               #   Vector icons
-│   │   │   ├── update/                  # Update check / download / install (GitHub API + foreground service)
-│   │   │   ├── App.kt                   # Application entry
-│   │   │   ├── AppContainer.kt          # Manual DI container (app-level)
-│   │   │   ├── AppUiState.kt            # Immutable app-level UI state
-│   │   │   ├── MainActivity.kt          # Single Activity
-│   │   │   └── MainViewModel.kt         # Activity-scoped global UI state holder
-│   │   └── res/                         # Resources (values / values-en)
-│   ├── src/test/kotlin/…                # JVM unit tests (pure logic + ViewModels)
-│   ├── lint.xml                         # Lint severity overrides & targeted ignores
-│   └── build.gradle.kts
-├── gradle/
-│   ├── libs.versions.toml               # Version catalog (dependencies)
-│   └── wrapper/
-├── AGENTS.md                            # Engineering conventions (build, tests, comments, lint, logging)
-├── build.gradle.kts
-├── settings.gradle.kts
-└── gradle.properties
-```
-
-## Architecture
-
-### State management — MVVM + UDF
-
-The app follows **MVVM with unidirectional data flow (UDF)**, forming a closed loop where state flows down and events flow up. State is split across two tiers:
-
-- **App-level global state** — `MainViewModel` (Activity-scoped) aggregates app-wide UI state (`themeMode`, `language`, `version`) into the immutable `AppUiState`, exposed as a `StateFlow` and provided to the UI tree via the `LocalMainViewModel` `CompositionLocal`. Theme, localization and screen UIs all consume this single source; the UI layer never touches the data source directly.
-- **Screen-level local state** — each screen's `{ScreenName}ViewModel` owns a `MutableStateFlow<{ScreenName}UiState>` as its single source of UI truth, exposed as an immutable `StateFlow` (e.g. `SettingsViewModel` + `SettingsUiState`). It is scoped to its navigation entry, so it is reclaimed when the page is popped.
-- **Update checking** — kept in a separate Activity-scoped `AppUpdateViewModel` so `MainViewModel` stays focused: a once-per-day auto check runs when Home is entered, a manual check runs from Settings, results are delivered as non-replaying `SharedFlow` events, and the last auto-check date is persisted via `UpdateCheckRepository`.
-- **Model** — the repository layer. `SettingsRepository` abstracts `DataStore Preferences`, which is the single source of truth for persisted settings; it is manually constructed and injected via `AppContainer` (swap-friendly for tests). User intents are received as plain methods (`setThemeMode`, `setLanguage`) and written back through the repository.
-
-The typical flow: `DataStore → Repository → ViewModel → UiState → UI` for state, and the reverse path for events.
-
-### UI composition — atomic decomposition + adaptive assemblies
-
-Code is organized with a **modular pattern driven by window size classes**, mirroring Material's adaptive guidance:
-
-- `{ScreenName}Screen.kt` — a thin screen entry that computes the window size class, hoists state and events, and hosts cross-form effects and page-level overlays. It contains **no layout code**.
-- `{ScreenName}Assembly.kt` — owns screen-level scaffolding (Scaffold, top bar, content pane) and **assembles page components**. Form differences are a layout flag such as `ContentPane`'s max content width, not a second UI tree. Split into `compact/` and `expanded/` assemblies only when the two forms genuinely compose different blocks — and then both must consume the same `UiState` and the same event callbacks.
-- `ui/component/` — cross-screen shared components (`SectionCard`, `AppTopBar`, `ContentPane`, plus `UpdateDialog` under `component/dialog/`), named by semantics. Components used by only one screen live under that screen's own `component/` subdirectory (e.g. `SettingsClickableItem`, `SingleChoiceDialog`). Dependencies point strictly downward: an assembly may compose components, but a component never composes back into an assembly, so the tree stays uncoupled.
-
-DI is manual: `App` builds a fully-populated `AppContainer` (DataStore, repository, localization manager, version) at startup, and the Activity / ViewModels pull dependencies from it (ViewModels get constructor args via a `viewModelFactory`). Page-level ViewModels are obtained with `viewModel()`, scoped to their navigation entry through the Navigation3 `rememberViewModelStoreNavEntryDecorator()`. No framework or reflection.
-
-Shared cross-feature code is hoisted to the top level (`data/`, `ui/`, `theme/`, `localization/`, `windowsize/`, `log/`, `update/`); code used by a single feature stays inside that feature module.
-
-Engineering conventions — build verification, unit-test expectations, comment style, logging policy and Lint suppression — are defined in [`AGENTS.md`](AGENTS.md).
+- **Device** — Android 8.0+ (`minSdk 26`)
+- **Runtime** — [Shizuku](https://shizuku.rikka.app/) installed and running, with ADB access granted to TrustFenc
+- **Build** — JDK 25, Android Studio (latest stable recommended), Android SDK with API 37 (`compileSdk`)
 
 ## Getting Started
 
-### Prerequisites
+### Raise the fence
 
-- JDK 25
-- Android Studio (latest stable recommended)
-- Android SDK with API 37 (`compileSdk`)
+1. Install Shizuku and start its service (wireless debugging on Android 11+, or root).
+2. Install TrustFenc and open it.
+3. Tap **Raise fence**; grant notification permission and the battery-optimization exemption when asked, then allow ADB access in the Shizuku prompt.
+4. Wait for the scan to finish — the status card switches to `SYS.ONLINE` / "The fence is up" and the console shows `SHIZUKU READY` and `WATCH ONLINE`.
+5. Any newly installed app that is not in the baseline is removed automatically.
+
+To stop guarding, tap **Take down** and confirm. The baseline is cleared, so apps installed afterwards are no longer blocked.
 
 ### Build
 
@@ -148,11 +81,14 @@ cd android-trustfenc
 # Unit tests
 ./gradlew testDebugUnitTest
 
+# Lint (must stay at 0 errors / 0 warnings)
+./gradlew lintDebug
+
 # Release build (requires signing config, see below)
 ./gradlew assembleRelease
 ```
 
-APKs are emitted as `trustfenc-<versionName>-arm64.apk` under `app/build/outputs/apk/`.
+APKs are emitted as `TrustFenc-<versionName>.apk` under `app/build/outputs/apk/`.
 
 ### Release Signing
 
@@ -166,14 +102,123 @@ KEY_PASSWORD=your_key_password
 
 The keystore file is expected at `jh.keystore` in the project root (adjust `storeFile` in `app/build.gradle.kts` if needed). `jh.keystore` and `local.properties` are git-ignored — never commit them.
 
-## Customizing the trustfenc
+## Tech Stack
 
-- **Rename the application / package**: update `namespace` and `applicationId` in `app/build.gradle.kts`, move the Kotlin sources under `app/src/main/kotlin/`, and update the manifest. Avoid a name collision with the existing `com.trustfenc.evilgodxu`.
-- **App name**: edit `app_name` in `app/src/main/res/values/strings.xml`.
-- **Theme colors**: edit `app/src/main/kotlin/.../theme/Color.kt`.
-- **Supported ABIs**: adjust `ndk.abiFilters` in `app/build.gradle.kts` (currently `arm64-v8a`).
-- **Add a new screen**: create a `screens/<name>/` feature module with its `UiState` + `ViewModel` + `assembly/<Name>Assembly.kt`, put single-screen components under its own `component/` (cross-screen ones go to `ui/component/`), register the route in `navigation/Screen.kt`, and add it to `AppNavHost`.
+| Layer | Technology |
+| --- | --- |
+| Language | Kotlin 2.4.21 |
+| UI | Jetpack Compose (BOM 2026.09.00) + Material 3, black-and-white FUI console |
+| Navigation | AndroidX Navigation3 1.2.1 (+ lifecycle-viewmodel-navigation3 2.11.0) |
+| Privileged access | Shizuku 13.1.5 (API + provider, AIDL `UserService`) |
+| DI | Manual DI (app-level `AppContainer`) |
+| Persistence | DataStore Preferences 1.3.0 |
+| Serialization | kotlinx.serialization 1.12.0 |
+| Lifecycle | androidx.lifecycle 2.11.0, activity-compose 1.13.0, core-ktx 1.19.1 |
+| Testing | JUnit 4.13.2, kotlinx-coroutines-test 1.11.0 |
+| Build | AGP 9.5.1, Gradle 9.9.0, refreshVersions 1.0.1 (local branch) |
+
+## Project Structure
+
+```
+.
+├── app/
+│   ├── src/main/
+│   │   ├── aidl/com/trustfenc/evilgodxu/service/
+│   │   │   └── ICommandService.aidl      # Shizuku UserService command channel
+│   │   ├── kotlin/com/trustfenc/evilgodxu/
+│   │   │   ├── data/
+│   │   │   │   ├── fence/                # Fence states, failures, installed-app scanner
+│   │   │   │   ├── repository/           # Fence / settings / update-check repositories
+│   │   │   │   ├── settings/             # Settings keys, ThemeMode, AppLanguage
+│   │   │   │   └── shizuku/              # ShizukuShell (state machine + shell channel)
+│   │   │   ├── localization/             # Runtime language switching
+│   │   │   ├── log/                      # CrashLogManager
+│   │   │   ├── navigation/               # Navigation3 typed routes + nav host
+│   │   │   ├── permission/               # Runtime permission helper
+│   │   │   ├── screens/
+│   │   │   │   ├── home/                 # Console (Screen + UiState + ViewModel)
+│   │   │   │   │   ├── assembly/         #   Scaffold + compact/wide console
+│   │   │   │   │   └── component/        #   console/ cards, dialog/ overlays
+│   │   │   │   └── settings/             # Settings (Screen + UiState + ViewModel)
+│   │   │   │       ├── assembly/
+│   │   │   │       └── component/        #   appearance/ language/ info/ dialog/
+│   │   │   ├── service/                  # Guard FGS, boot receiver, Shizuku UserService
+│   │   │   ├── theme/                    # Material 3 scheme + reveal transition
+│   │   │   ├── ui/
+│   │   │   │   ├── component/            # ContentPane, FUI kit (fui/), UpdateDialog
+│   │   │   │   └── icons/                # Local Material Symbols vectors
+│   │   │   ├── update/                   # GitHub check / download / install
+│   │   │   ├── windowsize/               # Window size classes
+│   │   │   ├── App.kt                    # Application entry
+│   │   │   ├── AppContainer.kt           # Manual DI container
+│   │   │   ├── AppUiState.kt             # App-level UI state
+│   │   │   ├── MainActivity.kt           # Single Activity
+│   │   │   └── MainViewModel.kt          # Activity-scoped global UI state holder
+│   │   └── res/                          # values / values-en / drawable / xml
+│   ├── src/test/kotlin/…                 # JVM unit tests
+│   ├── lint.xml                          # Lint severity overrides & targeted ignores
+│   └── build.gradle.kts
+├── docs/重构与构建配置参考.md            # Build configuration notes (Chinese)
+├── gradle/
+│   ├── libs.versions.toml                # Version catalog
+│   └── wrapper/
+├── AGENTS.md                             # Engineering conventions (build, tests, comments, lint, logging)
+├── build.gradle.kts
+├── settings.gradle.kts
+└── gradle.properties
+```
+
+## Architecture
+
+### State management — MVVM + UDF
+
+State flows down and events flow up, in two tiers:
+
+- **App-level** — `MainViewModel` aggregates theme, language and version into `AppUiState`; `AppUpdateViewModel` owns the update phase and dialog visibility. Both are Activity-scoped and delivered through `LocalMainViewModel` / `LocalAppUpdateViewModel`.
+- **Screen-level** — `HomeViewModel` combines `FenceRepository.snapshot` with page-only dialog and notice state into `HomeUiState`; `SettingsViewModel` holds dialog visibility and the theme-reveal origin. They are scoped to their Navigation3 entries via `rememberViewModelStoreNavEntryDecorator()`.
+- **Data** — `FenceRepository` is the single source of truth. It exposes a read-only `StateFlow<FenceSnapshot>` plus a non-replaying `SharedFlow<FenceFailure>` for one-shot notices, and writes through DataStore. `ShizukuShell` publishes `ShizukuState`, while `InstalledAppScanner` merges `PackageManager` visibility with the shell package list.
+
+The typical flow is `DataStore / Shizuku → Repository → ViewModel → UiState → UI` for state, with events travelling the other way.
+
+### Guard chain
+
+```text
+HomeScreen → HomeViewModel → FenceRepository ─┬→ InstalledAppScanner → ShizukuShell (pm list packages -3)
+                                              ├→ FenceGuardService (raise / stop)
+                                              └→ DataStore (baseline, counters, records)
+
+PACKAGE_ADDED → FenceGuardService → FenceRepository.evaluateInstalledPackage
+             → baseline check → pm uninstall → record + count
+```
+
+`FenceStatus` is a sealed interface (`Idle` / `Building` / `Guarding(since)` / `Dismantling`), so consumers handle every state at compile time. Build and dismantle transitions are guarded by a mutex; install evaluations are serialized by a second mutex, and the baseline is cached in memory so each install event does not hit the disk.
+
+### UI composition — atomic decomposition + adaptive assemblies
+
+- `{ScreenName}Screen.kt` — thin entry: obtains the ViewModel, computes the window size class, hosts cross-form effects (permission and battery-optimization prompts, daily update check) and page-level dialogs. No layout code.
+- `{ScreenName}Assembly.kt` — owns the Scaffold, FUI top bar and `ContentPane`, and **assembles page components**. The console switches between a compact single column and a wide two-column layout from the same `UiState` and the same event callback; both forms reuse the same cards.
+- `ui/component/` — cross-screen pieces (`ContentPane`, the FUI kit under `fui/`, `UpdateDialog`). Screen-only components stay under that screen's `component/`.
+- The console and Settings share `FuiConsoleTheme`, a black-and-white palette driven only by light/dark; Material 3 still owns system surfaces and the theme-reveal animation.
+
+DI is manual: `App` builds a fully-populated `AppContainer`, and the Activity / ViewModels pull dependencies from it through `viewModelFactory`. No framework or reflection.
+
+Engineering conventions — build verification, unit-test expectations, comment style, logging policy and Lint suppression — are defined in [`AGENTS.md`](AGENTS.md).
+
+## Limitations
+
+- **Shizuku is mandatory.** Without it, raising fails with a dialog explaining the missing precondition (not installed / not running / permission denied / scan failed / service blocked).
+- **Broadcasts can be delayed.** The 5-second watchdog usually catches an intruder within a few seconds, but an app can run briefly before it is removed.
+- **System apps and normal updates are never touched.** Only newly installed third-party packages are evaluated.
+- **Removal is destructive and not reversible.** Taking the fence down clears the baseline instead of restoring anything.
+
+## Customizing
+
+- **App name** — `app_name` in `app/src/main/res/values/strings.xml` (白篱) and `values-en/strings.xml` (TrustFenc).
+- **Rename the package** — update `namespace` and `applicationId` in `app/build.gradle.kts`, move the Kotlin sources under `app/src/main/kotlin/`, update the manifest, and keep the Shizuku provider authority tied to `${applicationId}`.
+- **Update source** — point `AppUpdateChecker.LATEST_RELEASE_URL` and `GITHUB_URL` in `AppInfo.kt` at your own repository.
+- **Console palette** — edit `ui/component/fui/FuiTheme.kt` for the black-and-white FUI colors; edit `theme/Color.kt` for the Material 3 scheme.
+- **Add a new screen** — create a `screens/<name>/` module with its `UiState` + `ViewModel` + `assembly/<Name>Assembly.kt`, register the route in `navigation/Screen.kt`, and add it to `AppNavHost`.
 
 ## License
 
-[MIT](LICENSE) © 2026 Evilgodxu
+MIT © 2026 Evilgodxu

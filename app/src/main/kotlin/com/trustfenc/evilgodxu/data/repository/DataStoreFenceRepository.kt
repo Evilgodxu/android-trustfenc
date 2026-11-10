@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
+import android.os.Build
 import androidx.core.content.ContextCompat
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.MutablePreferences
@@ -180,7 +181,12 @@ class DataStoreFenceRepository(
 
         val pm = appContext.packageManager
         val appInfo = runCatching {
-            pm.getApplicationInfo(packageName, PackageManager.ApplicationInfoFlags.of(0L))
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                pm.getApplicationInfo(packageName, PackageManager.ApplicationInfoFlags.of(0L))
+            } else {
+                @Suppress("DEPRECATION")
+                pm.getApplicationInfo(packageName, 0)
+            }
         }.getOrNull()
         // 系统应用与系统更新不属于安装拦截范围，避免 OTA 新增系统组件被误判
         val systemFlags = ApplicationInfo.FLAG_SYSTEM or ApplicationInfo.FLAG_UPDATED_SYSTEM_APP

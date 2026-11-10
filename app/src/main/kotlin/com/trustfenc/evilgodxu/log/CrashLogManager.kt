@@ -139,8 +139,20 @@ object CrashLogManager : Thread.UncaughtExceptionHandler {
     private fun currentAppVersion(): String {
         val context = appContext ?: return "unknown"
         return runCatching {
-            val info = context.packageManager.getPackageInfo(context.packageName, PackageManager.PackageInfoFlags.of(0L))
-            "${info.versionName} (${info.longVersionCode})"
+            val packageManager = context.packageManager
+            val info = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                packageManager.getPackageInfo(context.packageName, PackageManager.PackageInfoFlags.of(0L))
+            } else {
+                @Suppress("DEPRECATION")
+                packageManager.getPackageInfo(context.packageName, 0)
+            }
+            val versionCode = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                info.longVersionCode
+            } else {
+                @Suppress("DEPRECATION")
+                info.versionCode.toLong()
+            }
+            "${info.versionName} ($versionCode)"
         }.getOrDefault("unknown")
     }
 }

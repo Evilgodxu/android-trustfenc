@@ -2,6 +2,7 @@ package com.trustfenc.evilgodxu
 
 import android.content.Context
 import android.content.pm.PackageManager
+import android.os.Build
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
@@ -69,8 +70,15 @@ class AppContainer(context: Context) {
         }
     }
 
-    private fun readAppVersion(): String =
-        appContext.packageManager
-            .getPackageInfo(appContext.packageName, PackageManager.PackageInfoFlags.of(0L))
-            .versionName.orEmpty()
+    // PackageInfoFlags 自 API 33 起提供，低版本回落到已弃用的 int 重载
+    private fun readAppVersion(): String {
+        val packageManager = appContext.packageManager
+        val info = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            packageManager.getPackageInfo(appContext.packageName, PackageManager.PackageInfoFlags.of(0L))
+        } else {
+            @Suppress("DEPRECATION")
+            packageManager.getPackageInfo(appContext.packageName, 0)
+        }
+        return info.versionName.orEmpty()
+    }
 }

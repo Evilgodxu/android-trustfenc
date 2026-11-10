@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
+import android.os.Build
 import com.trustfenc.evilgodxu.data.shizuku.ShizukuShell
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -34,7 +35,13 @@ class InstalledAppScanner(
     @SuppressLint("QueryPermissionsNeeded")
     private fun scanVisiblePackages(): Set<String> {
         val pm = appContext.packageManager
-        return pm.getInstalledApplications(PackageManager.ApplicationInfoFlags.of(0L))
+        val apps = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            pm.getInstalledApplications(PackageManager.ApplicationInfoFlags.of(0L))
+        } else {
+            @Suppress("DEPRECATION")
+            pm.getInstalledApplications(0)
+        }
+        return apps
             .asSequence()
             .filter { info ->
                 info.flags and ApplicationInfo.FLAG_SYSTEM == 0 &&
