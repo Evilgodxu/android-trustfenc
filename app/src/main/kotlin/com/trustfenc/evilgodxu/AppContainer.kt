@@ -8,6 +8,8 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStoreFile
 import com.trustfenc.evilgodxu.data.repository.DataStoreSettingsRepository
 import com.trustfenc.evilgodxu.data.repository.DataStoreUpdateCheckRepository
+import com.trustfenc.evilgodxu.data.repository.FenceRepository
+import com.trustfenc.evilgodxu.data.repository.InMemoryFenceRepository
 import com.trustfenc.evilgodxu.data.repository.SettingsRepository
 import com.trustfenc.evilgodxu.data.repository.UpdateCheckRepository
 import com.trustfenc.evilgodxu.localization.LocalizationManager
@@ -26,6 +28,11 @@ class AppContainer(context: Context) {
 
     val updateCheckRepository: UpdateCheckRepository by lazy {
         DataStoreUpdateCheckRepository(preferencesDataStore)
+    }
+
+    // 篱笆数据源：控制台骨架阶段为内存实现，接入应用扫描与安装监听后替换
+    val fenceRepository: FenceRepository by lazy {
+        InMemoryFenceRepository()
     }
 
     val localizationManager: LocalizationManager by lazy {

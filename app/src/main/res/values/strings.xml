@@ -1,13 +1,54 @@
 <resources>
     <string name="app_name">白篱</string>
 
-    <!-- 主页 -->
-    <string name="home_title">首页</string>
-    <string name="home_greeting">欢迎使用 白篱</string>
-    <string name="home_welcome_title">欢迎</string>
-    <string name="home_welcome_message">白篱是你的安全守护应用，守护你的数字生活边界。</string>
-    <string name="home_about_title">项目简介</string>
-    <string name="home_about_message">基于单 Activity 与 Jetpack Compose 构建，采用 MVVM 架构，内置手动依赖注入、DataStore 持久化、深浅色主题与多语言支持，并遵循模块化架构组织代码。</string>
+    <!-- 控制台 -->
+    <string name="console_section_status">守护状态</string>
+    <string name="console_section_overview">守护概况</string>
+    <string name="console_section_recent">最近拦截</string>
+    <string name="console_section_guide">工作方式</string>
+
+    <string name="console_status_idle">未守护</string>
+    <string name="console_status_building">修筑中</string>
+    <string name="console_status_guarding">已守护</string>
+    <string name="console_status_dismantling">拆除中</string>
+
+    <string name="console_title_idle">篱笆未立起</string>
+    <string name="console_title_building">正在修筑篱笆</string>
+    <string name="console_title_guarding">篱笆已立起</string>
+    <string name="console_title_dismantling">正在拆除篱笆</string>
+
+    <string name="console_subtitle_idle">修筑后，当前所有应用会被锁进基线白名单。</string>
+    <string name="console_subtitle_building">正在扫描当前应用并写入基线白名单。</string>
+    <string name="console_subtitle_guarding">基线已锁定，新安装且不在白名单的应用会被立即卸载。</string>
+    <string name="console_subtitle_dismantling">正在停止守护并清空基线白名单。</string>
+
+    <string name="console_action_build">修筑篱笆</string>
+    <string name="console_action_dismantle">拆除篱笆</string>
+    <string name="console_action_building">正在修筑…</string>
+    <string name="console_action_dismantling">正在拆除…</string>
+    <string name="console_action_cancel">取消</string>
+
+    <string name="console_stat_baseline">基线应用</string>
+    <string name="console_stat_intercepted">已拦截</string>
+    <string name="console_stat_uptime">守护时长</string>
+    <string name="console_uptime_less_than_day">不足1天</string>
+    <string name="console_uptime_days">%1$d天</string>
+
+    <string name="console_intercept_empty_title">暂无拦截记录</string>
+    <string name="console_intercept_empty_hint">守护期间被卸载的新应用会记录在这里。</string>
+    <string name="console_intercept_tag">已卸载</string>
+
+    <string name="console_guide_scan_title">扫描当前应用</string>
+    <string name="console_guide_scan_desc">读取本机所有非系统应用。</string>
+    <string name="console_guide_baseline_title">建立基线白名单</string>
+    <string name="console_guide_baseline_desc">扫描结果成为唯一合法的应用清单。</string>
+    <string name="console_guide_listen_title">监听安装事件</string>
+    <string name="console_guide_listen_desc">守护期间持续监听新应用的安装。</string>
+    <string name="console_guide_remove_title">清除越界应用</string>
+    <string name="console_guide_remove_desc">不在基线中的新应用会被立即卸载。</string>
+
+    <string name="console_dismantle_dialog_title">拆除篱笆？</string>
+    <string name="console_dismantle_dialog_message">将停止守护并清空基线白名单，之后安装的应用不再受拦截。</string>
 
     <!-- 设置页 -->
     <string name="settings_title">设置</string>

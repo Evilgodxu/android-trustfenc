@@ -1,13 +1,54 @@
 <resources>
     <string name="app_name">TrustFenc</string>
 
-    <!-- Home -->
-    <string name="home_title">Home</string>
-    <string name="home_greeting">Welcome to TrustFenc</string>
-    <string name="home_welcome_title">Welcome</string>
-    <string name="home_welcome_message">TrustFenc is your security companion, guarding the boundaries of your digital life.</string>
-    <string name="home_about_title">About</string>
-    <string name="home_about_message">Built on a single-activity architecture with Jetpack Compose, featuring MVVM, manual DI, DataStore persistence, light/dark themes, multi-language support, and a modular code organization.</string>
+    <!-- Console -->
+    <string name="console_section_status">Guard status</string>
+    <string name="console_section_overview">Overview</string>
+    <string name="console_section_recent">Recent blocks</string>
+    <string name="console_section_guide">How it works</string>
+
+    <string name="console_status_idle">Idle</string>
+    <string name="console_status_building">Building</string>
+    <string name="console_status_guarding">Guarding</string>
+    <string name="console_status_dismantling">Taking down</string>
+
+    <string name="console_title_idle">The fence is down</string>
+    <string name="console_title_building">Raising the fence</string>
+    <string name="console_title_guarding">The fence is up</string>
+    <string name="console_title_dismantling">Taking down the fence</string>
+
+    <string name="console_subtitle_idle">Building locks every app currently installed into the baseline allowlist.</string>
+    <string name="console_subtitle_building">Scanning installed apps and writing the baseline allowlist.</string>
+    <string name="console_subtitle_guarding">Baseline locked. Newly installed apps outside it are removed immediately.</string>
+    <string name="console_subtitle_dismantling">Stopping the guard and clearing the baseline allowlist.</string>
+
+    <string name="console_action_build">Raise fence</string>
+    <string name="console_action_dismantle">Take down</string>
+    <string name="console_action_building">Raising…</string>
+    <string name="console_action_dismantling">Taking down…</string>
+    <string name="console_action_cancel">Cancel</string>
+
+    <string name="console_stat_baseline">Baseline apps</string>
+    <string name="console_stat_intercepted">Blocked</string>
+    <string name="console_stat_uptime">Uptime</string>
+    <string name="console_uptime_less_than_day">&lt;1d</string>
+    <string name="console_uptime_days">%1$dd</string>
+
+    <string name="console_intercept_empty_title">No blocks yet</string>
+    <string name="console_intercept_empty_hint">New apps removed while guarding will show up here.</string>
+    <string name="console_intercept_tag">Removed</string>
+
+    <string name="console_guide_scan_title">Scan installed apps</string>
+    <string name="console_guide_scan_desc">Read every non-system app on this device.</string>
+    <string name="console_guide_baseline_title">Build the baseline</string>
+    <string name="console_guide_baseline_desc">The scan becomes the only allowed app list.</string>
+    <string name="console_guide_listen_title">Watch for installs</string>
+    <string name="console_guide_listen_desc">Keep watching for new installs while guarding.</string>
+    <string name="console_guide_remove_title">Remove intruders</string>
+    <string name="console_guide_remove_desc">Apps outside the baseline are uninstalled immediately.</string>
+
+    <string name="console_dismantle_dialog_title">Take down the fence?</string>
+    <string name="console_dismantle_dialog_message">Guarding stops and the baseline allowlist is cleared. Newly installed apps will no longer be blocked.</string>
 
     <!-- Settings -->
     <string name="settings_title">Settings</string>
