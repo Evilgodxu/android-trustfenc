@@ -11,6 +11,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.trustfenc.evilgodxu.App
 import com.trustfenc.evilgodxu.screens.home.assembly.HomeAssembly
+import com.trustfenc.evilgodxu.screens.home.component.console.fui.FuiConsoleTheme
 import com.trustfenc.evilgodxu.screens.home.component.dialog.DismantleFenceDialog
 import com.trustfenc.evilgodxu.update.LocalAppUpdateViewModel
 import com.trustfenc.evilgodxu.windowsize.rememberWindowSizeClass
@@ -25,19 +26,22 @@ fun HomeScreen(
     val viewModel = homeViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    HomeAssembly(
-        windowSizeClass = rememberWindowSizeClass(),
-        uiState = uiState,
-        onOpenSettings = onOpenSettings,
-        onPrimaryAction = viewModel::onPrimaryAction,
-        modifier = modifier,
-    )
-
-    if (uiState.showDismantleConfirm) {
-        DismantleFenceDialog(
-            onConfirm = viewModel::confirmDismantle,
-            onDismiss = viewModel::dismissDismantleConfirm,
+    // 控制台使用独立的黑白视觉主题，弹窗与之共享同一配色作用域
+    FuiConsoleTheme {
+        HomeAssembly(
+            windowSizeClass = rememberWindowSizeClass(),
+            uiState = uiState,
+            onOpenSettings = onOpenSettings,
+            onPrimaryAction = viewModel::onPrimaryAction,
+            modifier = modifier,
         )
+
+        if (uiState.showDismantleConfirm) {
+            DismantleFenceDialog(
+                onConfirm = viewModel::confirmDismantle,
+                onDismiss = viewModel::dismissDismantleConfirm,
+            )
+        }
     }
 }
 

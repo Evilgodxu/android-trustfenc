@@ -1,5 +1,7 @@
 package com.trustfenc.evilgodxu.screens.home.component.console
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
@@ -8,10 +10,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -20,18 +21,21 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.trustfenc.evilgodxu.R
 import com.trustfenc.evilgodxu.data.fence.FenceStatus
-import com.trustfenc.evilgodxu.ui.component.SectionCard
+import com.trustfenc.evilgodxu.screens.home.component.console.fui.FuiPanel
+import com.trustfenc.evilgodxu.screens.home.component.console.fui.FuiSectionHeader
+import com.trustfenc.evilgodxu.screens.home.component.console.fui.LocalFuiPalette
 import com.trustfenc.evilgodxu.ui.icons.AppIcons
 import kotlinx.coroutines.delay
 
-// 守护概况：基线规模、累计拦截与本次守护时长三栏并排
+// 守护概况：基线规模、累计拦截与按天计的守护时长，三栏等宽仪表
 @Composable
 fun FenceOverviewCard(
     status: FenceStatus,
@@ -39,46 +43,55 @@ fun FenceOverviewCard(
     interceptedCount: Int,
     modifier: Modifier = Modifier,
 ) {
+    val palette = LocalFuiPalette.current
     val guardingSince = (status as? FenceStatus.Guarding)?.sinceMillis
 
-    SectionCard(title = stringResource(R.string.console_section_overview), modifier = modifier) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 20.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            StatItem(
-                icon = AppIcons.Apps,
-                tint = MaterialTheme.colorScheme.primary,
-                value = baselineCount.toString(),
-                label = stringResource(R.string.console_stat_baseline),
-            )
-            StatDivider()
-            StatItem(
-                icon = AppIcons.Block,
-                tint = MaterialTheme.colorScheme.error,
-                value = interceptedCount.toString(),
-                label = stringResource(R.string.console_stat_intercepted),
-            )
-            StatDivider()
-            StatItem(
-                icon = AppIcons.Schedule,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                value = guardingUptime(guardingSince),
-                label = stringResource(R.string.console_stat_uptime),
-            )
+    Column(modifier = modifier.fillMaxWidth()) {
+        FuiSectionHeader(
+            index = "02",
+            title = stringResource(R.string.console_section_overview),
+            tag = stringResource(R.string.fui_tag_overview),
+        )
+        FuiPanel(modifier = Modifier.fillMaxWidth()) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 18.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                StatCell(
+                    icon = AppIcons.Apps,
+                    code = stringResource(R.string.fui_stat_baseline),
+                    value = baselineCount.toString(),
+                    label = stringResource(R.string.console_stat_baseline),
+                )
+                CellDivider()
+                StatCell(
+                    icon = AppIcons.Block,
+                    code = stringResource(R.string.fui_stat_blocked),
+                    value = interceptedCount.toString(),
+                    label = stringResource(R.string.console_stat_intercepted),
+                )
+                CellDivider()
+                StatCell(
+                    icon = AppIcons.Schedule,
+                    code = stringResource(R.string.fui_stat_uptime),
+                    value = guardingUptime(guardingSince),
+                    label = stringResource(R.string.console_stat_uptime),
+                )
+            }
         }
     }
 }
 
 @Composable
-private fun RowScope.StatItem(
+private fun RowScope.StatCell(
     icon: ImageVector,
-    tint: Color,
+    code: String,
     value: String,
     label: String,
 ) {
+    val palette = LocalFuiPalette.current
     Column(
         modifier = Modifier.weight(1f),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -86,29 +99,42 @@ private fun RowScope.StatItem(
         Icon(
             imageVector = icon,
             contentDescription = null,
-            modifier = Modifier.size(20.dp),
-            tint = tint,
+            modifier = Modifier.size(18.dp),
+            tint = palette.inkMuted,
         )
         Spacer(Modifier.height(6.dp))
         Text(
             text = value,
-            style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold),
-            color = MaterialTheme.colorScheme.onSurface,
+            fontFamily = FontFamily.Monospace,
+            fontSize = 22.sp,
+            fontWeight = FontWeight.Medium,
+            color = palette.ink,
+        )
+        Spacer(Modifier.height(4.dp))
+        Text(
+            text = code,
+            fontFamily = FontFamily.Monospace,
+            fontSize = 9.sp,
+            letterSpacing = 1.5.sp,
+            color = palette.inkMuted,
         )
         Spacer(Modifier.height(2.dp))
         Text(
             text = label,
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            fontSize = 10.sp,
+            color = palette.inkMuted,
         )
     }
 }
 
 @Composable
-private fun StatDivider() {
-    VerticalDivider(
-        modifier = Modifier.height(52.dp),
-        color = MaterialTheme.colorScheme.outlineVariant,
+private fun CellDivider() {
+    val palette = LocalFuiPalette.current
+    Box(
+        modifier = Modifier
+            .width(1.dp)
+            .height(62.dp)
+            .background(palette.line),
     )
 }
 

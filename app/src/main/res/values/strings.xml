@@ -34,9 +34,7 @@
     <string name="console_uptime_less_than_day">不足1天</string>
     <string name="console_uptime_days">%1$d天</string>
 
-    <string name="console_intercept_empty_title">暂无拦截记录</string>
     <string name="console_intercept_empty_hint">守护期间被卸载的新应用会记录在这里。</string>
-    <string name="console_intercept_tag">已卸载</string>
 
     <string name="console_guide_scan_title">扫描当前应用</string>
     <string name="console_guide_scan_desc">读取本机所有非系统应用。</string>
@@ -49,6 +47,30 @@
 
     <string name="console_dismantle_dialog_title">拆除篱笆？</string>
     <string name="console_dismantle_dialog_message">将停止守护并清空基线白名单，之后安装的应用不再受拦截。</string>
+
+    <!-- 控制台 FUI 微标签 -->
+    <string name="fui_brand">TRUSTFENC</string>
+    <string name="fui_tag_guard_status">GUARD STATUS</string>
+    <string name="fui_tag_overview">OVERVIEW</string>
+    <string name="fui_tag_recent">RECENT BLOCKS</string>
+    <string name="fui_tag_guide">HOW IT WORKS</string>
+    <string name="fui_tag_removed">REMOVED</string>
+    <string name="fui_system_standby">SYS.STANDBY</string>
+    <string name="fui_system_building">SYS.BUILDING</string>
+    <string name="fui_system_online">SYS.ONLINE</string>
+    <string name="fui_system_dismantling">SYS.DISMANTLING</string>
+    <string name="fui_code_standby">STANDBY</string>
+    <string name="fui_code_build">BUILD</string>
+    <string name="fui_code_active">ACTIVE</string>
+    <string name="fui_code_dismantle">DISMANTLE</string>
+    <string name="fui_stat_baseline">BASELINE</string>
+    <string name="fui_stat_blocked">BLOCKED</string>
+    <string name="fui_stat_uptime">UPTIME</string>
+    <string name="fui_empty_records">&gt; NO RECORDS</string>
+    <string name="fui_action_build_tag">RAISE</string>
+    <string name="fui_action_dismantle_tag">DISMANTLE</string>
+    <string name="fui_action_cancel_tag">ESC</string>
+    <string name="fui_dialog_warn">SYS.WARN</string>
 
     <!-- 设置页 -->
     <string name="settings_title">设置</string>

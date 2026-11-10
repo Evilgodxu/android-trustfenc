@@ -1,6 +1,7 @@
 package com.trustfenc.evilgodxu.screens.home.assembly
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -10,27 +11,24 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import com.trustfenc.evilgodxu.R
 import com.trustfenc.evilgodxu.screens.home.HomeUiState
+import com.trustfenc.evilgodxu.screens.home.component.console.ConsoleTopBar
 import com.trustfenc.evilgodxu.screens.home.component.console.FenceGuideCard
 import com.trustfenc.evilgodxu.screens.home.component.console.FenceOverviewCard
 import com.trustfenc.evilgodxu.screens.home.component.console.FenceStatusCard
 import com.trustfenc.evilgodxu.screens.home.component.console.RecentInterceptsCard
-import com.trustfenc.evilgodxu.ui.component.AppTopBar
+import com.trustfenc.evilgodxu.screens.home.component.console.fui.FuiBackdrop
+import com.trustfenc.evilgodxu.screens.home.component.console.fui.LocalFuiPalette
 import com.trustfenc.evilgodxu.ui.component.ContentPane
-import com.trustfenc.evilgodxu.ui.icons.AppIcons
 import com.trustfenc.evilgodxu.windowsize.WindowSizeClass
 import com.trustfenc.evilgodxu.windowsize.contentMaxWidth
 
-// 控制台组装器：功能区块固定，宽窗把「状态 + 概况」与「拦截 + 说明」并排，窄窗保持单列
+// 控制台组装器：FUI 背景 + 顶栏，宽窗把「状态 + 概况」与「拦截 + 说明」并排，窄窗保持单列
 @Composable
 fun HomeAssembly(
     windowSizeClass: WindowSizeClass,
@@ -39,36 +37,29 @@ fun HomeAssembly(
     onPrimaryAction: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val palette = LocalFuiPalette.current
     Scaffold(
         modifier = modifier,
-        topBar = {
-            AppTopBar(
-                title = stringResource(R.string.app_name),
-                actions = {
-                    IconButton(onClick = onOpenSettings) {
-                        Icon(
-                            imageVector = AppIcons.Settings,
-                            contentDescription = stringResource(R.string.settings_title),
-                        )
-                    }
-                },
-            )
-        },
+        containerColor = palette.background,
+        topBar = { ConsoleTopBar(onOpenSettings = onOpenSettings) },
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
     ) { innerPadding ->
-        ContentPane(
-            maxContentWidth = windowSizeClass.contentMaxWidth,
-            modifier = Modifier
-                .fillMaxSize()
-                .consumeWindowInsets(innerPadding)
-                .padding(innerPadding),
-        ) {
-            if (windowSizeClass == WindowSizeClass.Compact) {
-                CompactConsole(uiState = uiState, onPrimaryAction = onPrimaryAction)
-            } else {
-                WideConsole(uiState = uiState, onPrimaryAction = onPrimaryAction)
+        Box(modifier = Modifier.fillMaxSize()) {
+            FuiBackdrop(modifier = Modifier.fillMaxSize())
+            ContentPane(
+                maxContentWidth = windowSizeClass.contentMaxWidth,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .consumeWindowInsets(innerPadding)
+                    .padding(innerPadding),
+            ) {
+                if (windowSizeClass == WindowSizeClass.Compact) {
+                    CompactConsole(uiState = uiState, onPrimaryAction = onPrimaryAction)
+                } else {
+                    WideConsole(uiState = uiState, onPrimaryAction = onPrimaryAction)
+                }
+                Spacer(Modifier.height(24.dp))
             }
-            Spacer(Modifier.height(24.dp))
         }
     }
 }

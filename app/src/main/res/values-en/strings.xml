@@ -34,9 +34,7 @@
     <string name="console_uptime_less_than_day">&lt;1d</string>
     <string name="console_uptime_days">%1$dd</string>
 
-    <string name="console_intercept_empty_title">No blocks yet</string>
     <string name="console_intercept_empty_hint">New apps removed while guarding will show up here.</string>
-    <string name="console_intercept_tag">Removed</string>
 
     <string name="console_guide_scan_title">Scan installed apps</string>
     <string name="console_guide_scan_desc">Read every non-system app on this device.</string>
@@ -49,6 +47,30 @@
 
     <string name="console_dismantle_dialog_title">Take down the fence?</string>
     <string name="console_dismantle_dialog_message">Guarding stops and the baseline allowlist is cleared. Newly installed apps will no longer be blocked.</string>
+
+    <!-- Console FUI micro labels -->
+    <string name="fui_brand">TRUSTFENC</string>
+    <string name="fui_tag_guard_status">GUARD STATUS</string>
+    <string name="fui_tag_overview">OVERVIEW</string>
+    <string name="fui_tag_recent">RECENT BLOCKS</string>
+    <string name="fui_tag_guide">HOW IT WORKS</string>
+    <string name="fui_tag_removed">REMOVED</string>
+    <string name="fui_system_standby">SYS.STANDBY</string>
+    <string name="fui_system_building">SYS.BUILDING</string>
+    <string name="fui_system_online">SYS.ONLINE</string>
+    <string name="fui_system_dismantling">SYS.DISMANTLING</string>
+    <string name="fui_code_standby">STANDBY</string>
+    <string name="fui_code_build">BUILD</string>
+    <string name="fui_code_active">ACTIVE</string>
+    <string name="fui_code_dismantle">DISMANTLE</string>
+    <string name="fui_stat_baseline">BASELINE</string>
+    <string name="fui_stat_blocked">BLOCKED</string>
+    <string name="fui_stat_uptime">UPTIME</string>
+    <string name="fui_empty_records">&gt; NO RECORDS</string>
+    <string name="fui_action_build_tag">RAISE</string>
+    <string name="fui_action_dismantle_tag">DISMANTLE</string>
+    <string name="fui_action_cancel_tag">ESC</string>
+    <string name="fui_dialog_warn">SYS.WARN</string>
 
     <!-- Settings -->
     <string name="settings_title">Settings</string>
