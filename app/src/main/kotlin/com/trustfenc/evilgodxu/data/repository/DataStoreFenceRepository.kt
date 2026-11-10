@@ -20,6 +20,7 @@ import com.trustfenc.evilgodxu.data.fence.FenceSnapshot
 import com.trustfenc.evilgodxu.data.fence.FenceStatus
 import com.trustfenc.evilgodxu.data.fence.InstalledAppScanner
 import com.trustfenc.evilgodxu.data.fence.InterceptedApp
+import com.trustfenc.evilgodxu.data.fence.parseThirdPartyPackages
 import com.trustfenc.evilgodxu.data.shizuku.ShizukuShell
 import com.trustfenc.evilgodxu.data.shizuku.ShizukuState
 import com.trustfenc.evilgodxu.log.CrashLogManager
@@ -28,6 +29,7 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
@@ -38,6 +40,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -62,6 +65,13 @@ class DataStoreFenceRepository(
 
     private val loaded = CompletableDeferred<Unit>()
     private val transitionMutex = Mutex()
+
+    // 判定与巡检共用同一份基线缓存，避免每条安装事件都读盘
+    @Volatile
+    private var baselineCache: Set<String> = emptySet()
+
+    // 广播与巡检可能同时命中同一批越界应用，串行化避免重复卸载
+    private val evaluationMutex = Mutex()
 
     init {
         scope.launch {
@@ -104,12 +114,24 @@ class DataStoreFenceRepository(
                 prefs[INTERCEPTED_COUNT] = 0
                 prefs.remove(RECENT_INTERCEPTS)
             }
+            baselineCache = baseline
+
+            // 先落定守护状态再拉起服务：服务创建时会立即读取快照，晚于启动更新会被误判为未守护
+            _snapshot.update {
+                it.copy(
+                    status = FenceStatus.Guarding(since),
+                    baselineCount = baseline.size,
+                    interceptedCount = 0,
+                    recentIntercepts = emptyList(),
+                )
+            }
 
             val serviceStarted = runCatching { startGuardService() }.onFailure {
                 CrashLogManager.logException("FenceRepository", "启动守护服务失败", it)
             }.isSuccess
             if (!serviceStarted) {
                 dataStore.edit { it.clearFence() }
+                baselineCache = emptySet()
                 _failures.emit(FenceFailure.GuardServiceFailed)
                 _snapshot.update {
                     it.copy(
@@ -119,16 +141,6 @@ class DataStoreFenceRepository(
                         recentIntercepts = emptyList(),
                     )
                 }
-                return
-            }
-
-            _snapshot.update {
-                it.copy(
-                    status = FenceStatus.Guarding(since),
-                    baselineCount = baseline.size,
-                    interceptedCount = 0,
-                    recentIntercepts = emptyList(),
-                )
             }
         } finally {
             transitionMutex.unlock()
@@ -145,12 +157,14 @@ class DataStoreFenceRepository(
                 CrashLogManager.logException("FenceRepository", "停止守护服务失败", it)
             }
             dataStore.edit { it.clearFence() }
+            baselineCache = emptySet()
             _snapshot.update {
                 it.copy(
                     status = FenceStatus.Idle,
                     baselineCount = 0,
                     interceptedCount = 0,
                     recentIntercepts = emptyList(),
+                    serviceRunning = false,
                 )
             }
         } finally {
@@ -158,15 +172,11 @@ class DataStoreFenceRepository(
         }
     }
 
-    override suspend fun evaluateInstalledPackage(packageName: String) {
-        if (packageName == appContext.packageName) return
-        val prefs = runCatching { dataStore.data.first() }.getOrElse {
-            CrashLogManager.logException("FenceRepository", "读取基线失败：$packageName", it)
-            return
-        }
-        val baseline = prefs[BASELINE].orEmpty()
-        if (baseline.isEmpty() || _snapshot.value.status !is FenceStatus.Guarding) return
-        if (packageName in baseline) return
+    override suspend fun evaluateInstalledPackage(packageName: String) = evaluationMutex.withLock {
+        if (packageName == appContext.packageName) return@withLock
+        val baseline = baselineCache
+        if (baseline.isEmpty() || _snapshot.value.status !is FenceStatus.Guarding) return@withLock
+        if (packageName in baseline) return@withLock
 
         val pm = appContext.packageManager
         val appInfo = runCatching {
@@ -174,19 +184,10 @@ class DataStoreFenceRepository(
         }.getOrNull()
         // 系统应用与系统更新不属于安装拦截范围，避免 OTA 新增系统组件被误判
         val systemFlags = ApplicationInfo.FLAG_SYSTEM or ApplicationInfo.FLAG_UPDATED_SYSTEM_APP
-        if (appInfo != null && appInfo.flags and systemFlags != 0) return
+        if (appInfo != null && appInfo.flags and systemFlags != 0) return@withLock
         val label = appInfo?.let { pm.getApplicationLabel(it).toString() } ?: packageName
 
-        val output = shell.execute("pm uninstall $packageName").getOrNull()
-        if (output == null || !output.trim().startsWith("Success")) {
-            // 卸载失败发生在真机上时，记录包名与命令输出，便于用户反馈后定位
-            CrashLogManager.logException(
-                "FenceRepository",
-                "卸载越界应用失败：$packageName，输出：${output?.trim().orEmpty()}",
-                IllegalStateException("pm uninstall failed"),
-            )
-            return
-        }
+        if (!uninstallPackage(packageName)) return@withLock
 
         val record = InterceptedApp(
             label = label,
@@ -207,6 +208,40 @@ class DataStoreFenceRepository(
                 recentIntercepts = decodeIntercepts(updated[RECENT_INTERCEPTS]),
             )
         }
+    }
+
+    override suspend fun verifyInstalledPackages() {
+        if (_snapshot.value.status !is FenceStatus.Guarding) return
+        val baseline = baselineCache
+        if (baseline.isEmpty()) return
+        val output = shell.execute("pm list packages -3").getOrNull() ?: return
+        if (output.startsWith("Error") || output.startsWith("Exception")) return
+        parseThirdPartyPackages(output)
+            .filterNot { it in baseline }
+            .forEach { evaluateInstalledPackage(it) }
+    }
+
+    override fun onGuardServiceStarted() {
+        _snapshot.update { it.copy(serviceRunning = true) }
+    }
+
+    override fun onGuardServiceStopped() {
+        _snapshot.update { it.copy(serviceRunning = false) }
+    }
+
+    // 卸载兜底：部分 ROM 需要显式指定用户，首次失败后换写法重试一次
+    private suspend fun uninstallPackage(packageName: String): Boolean {
+        val first = shell.execute("pm uninstall $packageName").getOrNull()?.trim().orEmpty()
+        if (first.startsWith("Success")) return true
+        delay(UNINSTALL_RETRY_DELAY_MS)
+        val second = shell.execute("pm uninstall --user 0 $packageName").getOrNull()?.trim().orEmpty()
+        if (second.startsWith("Success")) return true
+        CrashLogManager.logException(
+            "FenceRepository",
+            "卸载越界应用失败：$packageName，输出：${first.ifBlank { second }}",
+            IllegalStateException("pm uninstall failed"),
+        )
+        return false
     }
 
     override suspend fun awaitLoaded() {
@@ -241,6 +276,7 @@ class DataStoreFenceRepository(
             emptyPreferences()
         }
         val baseline = prefs[BASELINE].orEmpty()
+        baselineCache = baseline
         val guarding = prefs[GUARDING] == true && baseline.isNotEmpty()
         _snapshot.update {
             it.copy(
@@ -288,5 +324,6 @@ class DataStoreFenceRepository(
         val INTERCEPTED_COUNT = intPreferencesKey("fence_intercepted_count")
         val RECENT_INTERCEPTS = stringPreferencesKey("fence_recent_intercepts")
         const val MAX_RECENT_INTERCEPTS = 20
+        const val UNINSTALL_RETRY_DELAY_MS = 500L
     }
 }

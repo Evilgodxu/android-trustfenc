@@ -25,7 +25,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-// 守护前台服务：常驻通知保活，动态监听安装广播并对越界应用执行卸载
+// 官方前台服务：常驻通知保证后台存活，动态监听安装广播并对越界应用执行卸载
 class FenceGuardService : Service() {
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
@@ -55,13 +55,22 @@ class FenceGuardService : Service() {
             buildNotification(baselineCount = 0, interceptedCount = 0),
             ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE,
         )
+        // 同步注册监听，避免服务启动窗口内漏掉安装事件
+        registerPackageReceiver()
+        repository.onGuardServiceStarted()
         scope.launch {
             repository.awaitLoaded()
             if (repository.snapshot.value.status !is FenceStatus.Guarding) {
                 stopSelf()
                 return@launch
             }
-            registerPackageReceiver()
+            // 广播在部分 ROM 上可能被拦截或延迟，轮询当前安装列表兜底
+            launch {
+                while (repository.snapshot.value.status is FenceStatus.Guarding) {
+                    delay(WATCHDOG_INTERVAL_MS)
+                    repository.verifyInstalledPackages()
+                }
+            }
             repository.snapshot.collect { snapshot ->
                 if (snapshot.status !is FenceStatus.Guarding) {
                     stopSelf()
@@ -74,11 +83,25 @@ class FenceGuardService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int = START_STICKY
 
+    // 从最近任务划掉应用时部分 ROM 会顺带停掉服务，守护状态下立即拉起
+    override fun onTaskRemoved(rootIntent: Intent?) {
+        if (repository.snapshot.value.status is FenceStatus.Guarding) {
+            runCatching {
+                ContextCompat.startForegroundService(
+                    this,
+                    Intent(this, FenceGuardService::class.java),
+                )
+            }
+        }
+        super.onTaskRemoved(rootIntent)
+    }
+
     override fun onDestroy() {
         if (receiverRegistered) {
             unregisterReceiver(packageReceiver)
             receiverRegistered = false
         }
+        repository.onGuardServiceStopped()
         scope.cancel()
         super.onDestroy()
     }
@@ -90,11 +113,12 @@ class FenceGuardService : Service() {
         val filter = IntentFilter(Intent.ACTION_PACKAGE_ADDED).apply {
             addDataScheme("package")
         }
+        // PACKAGE_ADDED 是系统保护的广播，第三方无法伪造；按系统广播接收要求使用 EXPORTED
         ContextCompat.registerReceiver(
             this,
             packageReceiver,
             filter,
-            ContextCompat.RECEIVER_NOT_EXPORTED,
+            ContextCompat.RECEIVER_EXPORTED,
         )
         receiverRegistered = true
     }
@@ -125,6 +149,7 @@ class FenceGuardService : Service() {
             .setContentText(getString(R.string.fence_notification_text, baselineCount, interceptedCount))
             .setOngoing(true)
             .setOnlyAlertOnce(true)
+            .setForegroundServiceBehavior(NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE)
             .setContentIntent(contentIntent)
             .setCategory(NotificationCompat.CATEGORY_SERVICE)
             .build()
@@ -139,5 +164,6 @@ class FenceGuardService : Service() {
         const val CHANNEL_ID = "fence_guard"
         const val NOTIFICATION_ID = 1001
         const val INSTALL_SETTLE_DELAY_MS = 1_000L
+        const val WATCHDOG_INTERVAL_MS = 5_000L
     }
 }

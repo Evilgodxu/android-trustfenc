@@ -38,8 +38,24 @@ fun FenceNoticeDialog(
     onOpenShizuku: () -> Unit,
 ) {
     val palette = LocalFuiPalette.current
-    val canOpenShizuku = failure == FenceFailure.ShizukuNotRunning ||
-        failure == FenceFailure.PermissionDenied
+
+    val actionLabelRes = when (failure) {
+        FenceFailure.ShizukuNotRunning, FenceFailure.PermissionDenied ->
+            R.string.fence_notice_open_shizuku
+        FenceFailure.ShizukuNotInstalled, FenceFailure.ScanFailed, FenceFailure.GuardServiceFailed ->
+            null
+    }
+    val actionTagRes = when (failure) {
+        FenceFailure.ShizukuNotRunning, FenceFailure.PermissionDenied ->
+            R.string.fui_action_shizuku_tag
+        FenceFailure.ShizukuNotInstalled, FenceFailure.ScanFailed, FenceFailure.GuardServiceFailed ->
+            R.string.fui_action_ok_tag
+    }
+    val action = when (failure) {
+        FenceFailure.ShizukuNotRunning, FenceFailure.PermissionDenied -> onOpenShizuku
+        FenceFailure.ShizukuNotInstalled, FenceFailure.ScanFailed, FenceFailure.GuardServiceFailed ->
+            null
+    }
 
     Dialog(
         onDismissRequest = onDismiss,
@@ -99,13 +115,13 @@ fun FenceNoticeDialog(
                     Spacer(Modifier.height(20.dp))
                     HorizontalDivider(color = palette.line)
                     Spacer(Modifier.height(16.dp))
-                    if (canOpenShizuku) {
+                    if (actionLabelRes != null && action != null) {
                         Row {
                             FuiSmallButton(
-                                label = stringResource(R.string.fence_notice_open_shizuku),
-                                tag = stringResource(R.string.fui_action_shizuku_tag),
+                                label = stringResource(actionLabelRes),
+                                tag = stringResource(actionTagRes),
                                 filled = false,
-                                onClick = onOpenShizuku,
+                                onClick = action,
                                 modifier = Modifier.weight(1f),
                             )
                             Spacer(Modifier.width(10.dp))

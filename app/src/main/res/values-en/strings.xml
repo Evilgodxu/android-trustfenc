@@ -87,6 +87,9 @@
     <string name="fui_shizuku_unauthorized">UNAUTHORIZED</string>
     <string name="fui_shizuku_denied">DENIED</string>
     <string name="fui_shizuku_ready">READY</string>
+    <string name="fui_watch_label">WATCH</string>
+    <string name="fui_watch_online">ONLINE</string>
+    <string name="fui_watch_offline">OFFLINE</string>
     <string name="fui_action_ok_tag">OK</string>
     <string name="fui_action_shizuku_tag">SHIZUKU</string>
     <string name="fence_notice_warn">SYS.ALERT</string>

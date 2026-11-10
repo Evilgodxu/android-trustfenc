@@ -30,4 +30,6 @@ data class FenceSnapshot(
     val interceptedCount: Int = 0,
     val recentIntercepts: List<InterceptedApp> = emptyList(),
     val shizuku: ShizukuState = ShizukuState.NotRunning,
+    // 守护服务是否存活：控制台据此确认监听链路真的在运行
+    val serviceRunning: Boolean = false,
 )

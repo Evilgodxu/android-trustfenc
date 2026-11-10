@@ -37,6 +37,7 @@ import com.trustfenc.evilgodxu.ui.icons.AppIcons
 fun FenceStatusCard(
     status: FenceStatus,
     shizuku: ShizukuState,
+    serviceRunning: Boolean,
     onPrimaryAction: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -114,22 +115,44 @@ fun FenceStatusCard(
                 HorizontalDivider(color = palette.line)
                 Spacer(Modifier.height(12.dp))
                 ShizukuStatusRow(shizuku = shizuku)
+                Spacer(Modifier.height(8.dp))
+                WatchStatusRow(serviceRunning = serviceRunning)
             }
         }
     }
 }
 
+// 监听链路状态：服务心跳中断说明广播与兜底巡检都没有在执行
+@Composable
+private fun WatchStatusRow(serviceRunning: Boolean) {
+    RuntimeStatusRow(
+        label = stringResource(R.string.fui_watch_label),
+        code = stringResource(
+            if (serviceRunning) R.string.fui_watch_online else R.string.fui_watch_offline,
+        ),
+        active = serviceRunning,
+    )
+}
+
 // 运行条件：Shizuku 的就绪状态直接决定修筑与卸载能否执行
 @Composable
 private fun ShizukuStatusRow(shizuku: ShizukuState) {
+    RuntimeStatusRow(
+        label = stringResource(R.string.fui_shizuku_label),
+        code = stringResource(shizuku.codeRes()),
+        active = shizuku == ShizukuState.Ready,
+    )
+}
+
+@Composable
+private fun RuntimeStatusRow(label: String, code: String, active: Boolean) {
     val palette = LocalFuiPalette.current
-    val ready = shizuku == ShizukuState.Ready
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
-            text = stringResource(R.string.fui_shizuku_label),
+            text = label,
             fontFamily = FontFamily.Monospace,
             fontSize = 9.sp,
             letterSpacing = 1.5.sp,
@@ -139,15 +162,15 @@ private fun ShizukuStatusRow(shizuku: ShizukuState) {
         Box(
             modifier = Modifier
                 .size(6.dp)
-                .background(if (ready) palette.ink else palette.inkMuted),
+                .background(if (active) palette.ink else palette.inkMuted),
         )
         Spacer(Modifier.width(8.dp))
         Text(
-            text = stringResource(shizuku.codeRes()),
+            text = code,
             fontFamily = FontFamily.Monospace,
             fontSize = 9.sp,
             letterSpacing = 1.5.sp,
-            color = if (ready) palette.ink else palette.inkMuted,
+            color = if (active) palette.ink else palette.inkMuted,
         )
     }
 }

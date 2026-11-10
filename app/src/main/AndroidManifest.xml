@@ -14,6 +14,8 @@
     <!-- 篱笆守护：常驻前台服务监听安装事件，开机后恢复守护 -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <!-- 引导用户关闭电池优化，保证后台守护不被系统回收 -->
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
     <!-- 通过 Shizuku 获取 ADB 权限 -->
     <uses-permission android:name="moe.shizuku.manager.permission.API_V23" />
 
@@ -57,10 +59,11 @@
             android:exported="false"
             android:foregroundServiceType="dataSync" />
 
-        <!-- 篱笆守护：监听安装事件并通过 Shizuku 卸载越界应用 -->
+        <!-- 篱笆守护：前台服务常驻，监听安装事件并通过 Shizuku 卸载越界应用 -->
         <service
             android:name=".service.FenceGuardService"
             android:exported="false"
+            android:stopWithTask="false"
             android:foregroundServiceType="specialUse">
             <property
                 android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"

@@ -38,6 +38,16 @@ class FakeFenceRepository(
 
     override suspend fun evaluateInstalledPackage(packageName: String) = Unit
 
+    override suspend fun verifyInstalledPackages() = Unit
+
+    override fun onGuardServiceStarted() {
+        _snapshot.update { it.copy(serviceRunning = true) }
+    }
+
+    override fun onGuardServiceStopped() {
+        _snapshot.update { it.copy(serviceRunning = false) }
+    }
+
     override suspend fun awaitLoaded() = Unit
 
     fun emitFailure(failure: FenceFailure) {

@@ -87,6 +87,7 @@ private fun CompactConsole(
     FenceStatusCard(
         status = uiState.status,
         shizuku = uiState.shizuku,
+        serviceRunning = uiState.serviceRunning,
         onPrimaryAction = onPrimaryAction,
     )
     FenceOverviewCard(
@@ -112,6 +113,7 @@ private fun WideConsole(
             FenceStatusCard(
                 status = uiState.status,
                 shizuku = uiState.shizuku,
+                serviceRunning = uiState.serviceRunning,
                 onPrimaryAction = onPrimaryAction,
             )
             FenceOverviewCard(

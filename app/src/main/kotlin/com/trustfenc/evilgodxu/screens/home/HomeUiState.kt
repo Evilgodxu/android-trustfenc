@@ -9,6 +9,7 @@ import com.trustfenc.evilgodxu.data.shizuku.ShizukuState
 data class HomeUiState(
     val status: FenceStatus = FenceStatus.Idle,
     val shizuku: ShizukuState = ShizukuState.NotRunning,
+    val serviceRunning: Boolean = false,
     val baselineCount: Int = 0,
     val interceptedCount: Int = 0,
     val recentIntercepts: List<InterceptedApp> = emptyList(),

@@ -35,6 +35,7 @@ class HomeViewModel(
             HomeUiState(
                 status = snapshot.status,
                 shizuku = snapshot.shizuku,
+                serviceRunning = snapshot.serviceRunning,
                 baselineCount = snapshot.baselineCount,
                 interceptedCount = snapshot.interceptedCount,
                 recentIntercepts = snapshot.recentIntercepts,

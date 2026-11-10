@@ -18,6 +18,13 @@ interface FenceRepository {
     // 收到新应用安装后的判定与处理：越界即卸载并记账
     suspend fun evaluateInstalledPackage(packageName: String)
 
+    // 兜底巡检：广播可能被 ROM 拦截或延迟，按当前已安装列表主动比对基线
+    suspend fun verifyInstalledPackages()
+
+    fun onGuardServiceStarted()
+
+    fun onGuardServiceStopped()
+
     // 守护服务在开机等场景启动时，等待持久化基线加载完成再决定去留
     suspend fun awaitLoaded()
 }
