@@ -6,7 +6,7 @@
 
 **English** | [简体中文](README.zh-CN.md)
 
-![License](https://img.shields.io/badge/license-MIT-green)
+![License](https://img.shields.io/badge/license-AGPL--3.0-blue)
 ![Platform](https://img.shields.io/badge/platform-Android-brightgreen)
 ![Kotlin](https://img.shields.io/badge/Kotlin-2.4.21-purple)
 ![AGP](https://img.shields.io/badge/AGP-9.5.1-blue)
@@ -221,4 +221,4 @@ Engineering conventions — build verification, unit-test expectations, comment 
 
 ## License
 
-MIT © 2026 Evilgodxu
+[GNU Affero General Public License v3.0](LICENSE) © 2026 Evilgodxu
